@@ -1,6 +1,7 @@
 #include "gmail.h"
 
 #include <iostream>
+#include <QStringList>
 
 GMail::GMail(QString _clientSecret, QString _redirectUri, QString _clientId,
              QString _settingsGroup, QObject *parent) :

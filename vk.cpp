@@ -53,7 +53,9 @@ void Vk::slotGetAccessToken()
 {
     QString permissions = "wall,offline"; //notify,friends,photos,audio,video,docs,notes,pages,wall,groups,messages,ads,offline
     QUrl url("http://api.vk.com/oauth/authorize?client_id=" + client_id + "&redirect_uri=http://api.vk.com/blank.html&scope="+permissions+"&display=page&response_type=token");
-
+    //We probably need to delete this
+    //Is it needed?
+    //@TODO: Check this out.
     //    webView = new QWebView;
 
     //    webView->load(url);
@@ -159,6 +161,7 @@ void Vk::slotPost(Message *msg)
 
 void Vk::slotStartCheckCycle()
 {
+    qDebug()<<"Vk cycle started";
     refreshTimer->start(2000);
     //    refreshTimer->start(checkIntervalMinutes*60000);
 }
