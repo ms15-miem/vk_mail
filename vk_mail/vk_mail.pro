@@ -18,6 +18,9 @@ else:unix: LIBS += -L$$OUT_PWD/../vreen/src/api/ -lvreen
 INCLUDEPATH += $$OUT_PWD/../vreen/include/vreen/
 DEPENDPATH += $$OUT_PWD/../vreen/include/vreen/
 
+INCLUDEPATH += $$OUT_PWD/../vreen/include/
+DEPENDPATH += $$OUT_PWD/../vreen/include/
+
 QT += network webkit
 
 QMAKE_CXXFLAGS += -std=c++0x # for GCC < 4.7
