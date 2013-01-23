@@ -15,8 +15,8 @@ win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../vreen/src/api/relea
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../vreen/src/api/debug/ -lvreen
 else:unix: LIBS += -L$$OUT_PWD/../vreen/src/api/ -lvreen
 
-INCLUDEPATH += $$PWD/../vreen/include
-DEPENDPATH += $$PWD/../vreen/include
+INCLUDEPATH += $$OUT_PWD/../vreen/include/vreen/
+DEPENDPATH += $$OUT_PWD/../vreen/include/vreen/
 
 QT += network webkit
 

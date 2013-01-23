@@ -23,7 +23,7 @@
 **
 ****************************************************************************/
 #include "phonefetcher.h"
-#include <vreen/roster.h>
+#include <roster.h>
 #include <QDebug>
 #include <QApplication>
 

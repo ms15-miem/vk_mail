@@ -24,7 +24,7 @@
 ****************************************************************************/
 #ifndef PHONEFETCHER_H
 #define PHONEFETCHER_H
-#include <vreen/client.h>
+#include <client.h>
 #include <../vreen/src/oauth/oauthconnection.h>
 
 class PhoneFetcher : public Vreen::Client
