@@ -1,3 +1,1 @@
-vk_mail
-=======
-git clone --recursive https://github.com/narcjkeee/vk_mail.git
+git clone https://github.com/narcjkeee/vk_mail.git
