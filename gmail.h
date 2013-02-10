@@ -7,19 +7,20 @@ class GMail : public OAuth
 {
     Q_OBJECT
 
+private:
+    // тестовые функции
+    void test();
+
 protected:
     QString refresh_token;
     int checkIntervalMinutes;
     void requestToken();
 
 public:
-    explicit GMail(QObject *parent = 0);
+    explicit GMail(QString _settingsGroup, QObject *parent = 0);
     ~GMail();
     void setCheckInterval(int minutes);
     int getCheckInterval();
-
-    // тестовые функции
-    void test();
 
 signals:
     void unreadedMessage(Message msg);

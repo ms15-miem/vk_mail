@@ -10,7 +10,7 @@ class Vk : public OAuth
     int clientId;
 
 public:
-    explicit Vk(int _clientId, QObject *parent = 0);
+    explicit Vk(int _clientId, QString _settingsGroup, QObject *parent = 0);
     ~Vk();
 
 protected:

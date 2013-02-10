@@ -1,7 +1,7 @@
 #include "gmail.h"
 
-GMail::GMail(QObject *parent) :
-    OAuth(parent)
+GMail::GMail(QString _settingsGroup, QObject *parent) :
+    OAuth(_settingsGroup, parent)
 {
 }
 
@@ -27,6 +27,7 @@ void GMail::test()
 
 void GMail::requestToken()
 {
+    test();
 }
 
 

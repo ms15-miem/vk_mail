@@ -1,7 +1,7 @@
 #include "oauth.h"
 
-OAuth::OAuth(QObject *parent) :
-    QObject(parent), /*webView(0),*/ keepAuth(false)
+OAuth::OAuth(QString _settingsGroup, QObject *parent) :
+    QObject(parent), /*webView(0),*/ keepAuth(false), settingsGroup(_settingsGroup)
 {
     netManager = new QNetworkAccessManager(this);
     QObject::connect(netManager, SIGNAL(finished(QNetworkReply*)),
@@ -51,11 +51,6 @@ bool OAuth::getKeepAuth()
     return keepAuth;
 }
 
-bool OAuth::getReady()
-{
-    return ready;
-}
-
 void OAuth::slotFinished(QNetworkReply *reply)
 {
     QByteArray data = reply->readAll();
@@ -65,9 +60,4 @@ void OAuth::slotFinished(QNetworkReply *reply)
     qDebug() << "slotFinished" << reply->url();
 
     reply->deleteLater();
-}
-
-void OAuth::slotReady(bool _ready)
-{
-    ready = _ready;
 }

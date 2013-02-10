@@ -17,13 +17,12 @@ class OAuth : public QObject
     Q_OBJECT
 
 private:
-    bool ready;
 
 protected:
     QString access_token;
     QNetworkAccessManager *netManager;
     bool keepAuth;
-    QString settingsGroup;
+    const QString settingsGroup;
     QWebView *webView;
 
     virtual void saveAuthData() const;
@@ -31,7 +30,7 @@ protected:
     virtual void requestToken()=0;
 
 public:
-    explicit OAuth(QObject *parent = 0);
+    explicit OAuth(QString _settingsGroup, QObject *parent = 0);
     virtual ~OAuth()=0;
     void connect();
     void setKeepAuth(bool keep);
@@ -44,7 +43,6 @@ signals:
     
 private slots:
     void slotFinished(QNetworkReply *reply);
-    void slotReady(bool _ready);
 };
 
 

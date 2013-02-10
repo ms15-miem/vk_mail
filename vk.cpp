@@ -1,7 +1,7 @@
 #include "vk.h"
 
-Vk::Vk(int _clientId, QObject *parent) :
-    OAuth(parent), clientId(_clientId)
+Vk::Vk(int _clientId, QString _settingsGroup, QObject *parent) :
+    OAuth(_settingsGroup, parent), clientId(_clientId)
 {
 }
 
@@ -9,7 +9,6 @@ Vk::~Vk()
 {
     delete webView;
 
-    saveAuthData();
 }
 
 void Vk::requestToken()
@@ -20,7 +19,7 @@ void Vk::requestToken()
 
     webView->load(url);
 
-    QObject::connect(this, SIGNAL(urlChanged(QUrl)), SLOT(slotUrlChanged(QUrl)));
+    QObject::connect(webView, SIGNAL(urlChanged(QUrl)), SLOT(slotUrlChanged(QUrl)));
 
     webView->show();
 
@@ -43,6 +42,7 @@ void Vk::slotUrlChanged(const QUrl &_url)
         QApplication::instance()->processEvents();
 
         emit receivedAccessToken();
+        saveAuthData();
         emit setReady(true);
     }
 }
