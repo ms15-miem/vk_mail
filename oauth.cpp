@@ -1,7 +1,7 @@
 #include "oauth.h"
 
 OAuth::OAuth(QObject *parent) :
-    QObject(parent), webView(0), keepAuth(false)
+    QObject(parent), /*webView(0),*/ keepAuth(false)
 {
     netManager = new QNetworkAccessManager(this);
     QObject::connect(netManager, SIGNAL(finished(QNetworkReply*)),
@@ -14,9 +14,10 @@ OAuth::~OAuth()
 
 void OAuth::connect()
 {
-    if (keepAuth) {
-        loadAuthData();
+    loadAuthData();
+    if (keepAuth && !access_token.isNull()) {
         //TODO нужна какая-нибудь проверка на истечение токена
+        emit setReady(true);
     }
     else {
         requestToken();
@@ -50,17 +51,23 @@ bool OAuth::getKeepAuth()
     return keepAuth;
 }
 
+bool OAuth::getReady()
+{
+    return ready;
+}
+
 void OAuth::slotFinished(QNetworkReply *reply)
 {
     QByteArray data = reply->readAll();
 
-    if (webView) {
-        webView->setHtml(data);
-        webView->setUrl(reply->url());
-        webView->show();
-    }
 
-    qDebug() << reply->url();
+
+    qDebug() << "slotFinished" << reply->url();
 
     reply->deleteLater();
+}
+
+void OAuth::slotReady(bool _ready)
+{
+    ready = _ready;
 }

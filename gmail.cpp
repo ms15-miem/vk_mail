@@ -18,3 +18,19 @@ int GMail::getCheckInterval()
 {
     return checkIntervalMinutes;
 }
+
+void GMail::test()
+{
+    emit setReady(true);
+}
+
+
+void GMail::requestToken()
+{
+}
+
+
+void GMail::startCheckCycle()
+{
+    emit unreadedMessage(Message(QString::fromUtf8("тестовое сообщение")));
+}

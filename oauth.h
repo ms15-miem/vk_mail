@@ -10,17 +10,21 @@
 #include <QDebug>
 #include "message.h"
 #include <QApplication>
+#include <QTextCodec>
 
 class OAuth : public QObject
 {
     Q_OBJECT
 
+private:
+    bool ready;
+
 protected:
     QString access_token;
     QNetworkAccessManager *netManager;
-    QWebView *webView;
     bool keepAuth;
     QString settingsGroup;
+    QWebView *webView;
 
     virtual void saveAuthData() const;
     virtual void loadAuthData();
@@ -32,12 +36,15 @@ public:
     void connect();
     void setKeepAuth(bool keep);
     bool getKeepAuth();
+    bool getReady();
 
 signals:
     void receivedAccessToken();
+    void setReady(bool ready);
     
 private slots:
     void slotFinished(QNetworkReply *reply);
+    void slotReady(bool _ready);
 };
 
 

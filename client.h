@@ -10,13 +10,18 @@ class Client : public QObject
     Q_OBJECT
 
     Vk *vk;
+    GMail *gmail;
+    bool vkReady;
+    bool gmailReady;
+
 public:
     explicit Client(QObject *parent = 0);
+    ~Client();
     
 signals:
 
 private slots:
-    void slotPost();
+    void slotWork(bool ready);
 
 public slots:
     

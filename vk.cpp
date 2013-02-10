@@ -8,6 +8,8 @@ Vk::Vk(int _clientId, QObject *parent) :
 Vk::~Vk()
 {
     delete webView;
+
+    saveAuthData();
 }
 
 void Vk::requestToken()
@@ -16,9 +18,13 @@ void Vk::requestToken()
 
     webView = new QWebView;
 
-    QObject::connect(webView, SIGNAL(urlChanged(QUrl)), SLOT(slotUrlChanged(QUrl)));
+    webView->load(url);
 
-    netManager->get(QNetworkRequest(url));
+    QObject::connect(this, SIGNAL(urlChanged(QUrl)), SLOT(slotUrlChanged(QUrl)));
+
+    webView->show();
+
+//    netManager->get(QNetworkRequest(url));
 }
 
 void Vk::slotUrlChanged(const QUrl &_url)
@@ -29,28 +35,34 @@ void Vk::slotUrlChanged(const QUrl &_url)
         access_token = url.queryItemValue("access_token");
         qDebug() << access_token;
 
-        QObject::disconnect(webView, SIGNAL(urlChanged(QUrl)),
-                            this, SLOT(slotUrlChanged(QUrl)));
-        webView->hide();
-        webView->deleteLater();
-        webView = 0;
+        if (webView) {
+            webView->hide();
+            webView->deleteLater();
+            webView = 0;
+        }
         QApplication::instance()->processEvents();
 
         emit receivedAccessToken();
+        emit setReady(true);
     }
 }
 
 void Vk::slotPost(const Message &msg)
 {
+    if (access_token.isNull()) return;
 
-    //                QUrl msg("https://api.vkontakte.ru/method/wall.post");
-    QUrl url_msg("https://api.vkontakte.ru/method/wall.post?owner_id=-49374915&message=check&from_group=1&access_token=" + access_token);
+    QUrl url_msg("https://api.vkontakte.ru/method/wall.post");
+    //    QUrl url_msg("https://api.vkontakte.ru/method/wall.post?owner_id=-49374915&message=check&from_group=1&access_token=" + access_token);
 
+    url_msg.addQueryItem("owner_id", "-49374915");
 
-    //        msg.addQueryItem("owner_id", "-49374915");
-    //        msg.addQueryItem("message", "test_app");
-    //        msg.addQueryItem("from_group", "1");
-    //        msg.addQueryItem("access_token", access_token);
+    QString message = msg.getText();
+
+    url_msg.addEncodedQueryItem("message", QUrl::toPercentEncoding(message));
+
+    url_msg.addQueryItem("from_group", "0");
+    //            url_msg.addQueryItem("from_group", "1");
+    url_msg.addQueryItem("access_token", access_token);
 
     QNetworkRequest req(url_msg);
     netManager->get(req);
