@@ -1,4 +1,5 @@
 #include "oauth.h"
+#include <QSettings>
 
 OAuth::OAuth(QString _settingsGroup, QObject *parent) :
     QObject(parent), /*webView(0),*/ keepAuth(false), settingsGroup(_settingsGroup)
@@ -26,7 +27,7 @@ void OAuth::connect()
 
 void OAuth::saveAuthData() const
 {
-    QSettings cfg;
+    QSettings cfg("gmail2vk.ini",QSettings::IniFormat);
     cfg.beginGroup(settingsGroup);
     cfg.setValue("access_token", access_token);
     cfg.endGroup();
@@ -34,7 +35,7 @@ void OAuth::saveAuthData() const
 
 void OAuth::loadAuthData()
 {
-    QSettings cfg;
+    QSettings cfg("gmail2vk.ini",QSettings::IniFormat);
     cfg.beginGroup(settingsGroup);
     access_token = cfg.value("access_token").toString();
     cfg.endGroup();
