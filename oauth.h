@@ -17,7 +17,7 @@ class OAuth : public QObject
     Q_OBJECT
 
 private:
-
+    QSettings *cfg;
 protected:
     QString access_token;
     QNetworkAccessManager *netManager;

@@ -27,6 +27,9 @@ void GMail::test()
 
 void GMail::requestToken()
 {
+//    QUrl url("https://accounts.google.com/o/oauth2/auth");
+
+
     test();
 }
 

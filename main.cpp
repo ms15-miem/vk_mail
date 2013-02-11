@@ -5,6 +5,7 @@ int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
     a.setQuitOnLastWindowClosed(false);
+    a.setApplicationName("gmail2vk");
 
     Client client;
     
