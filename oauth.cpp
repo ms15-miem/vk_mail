@@ -1,7 +1,8 @@
 #include "oauth.h"
 
-OAuth::OAuth(QString _settingsGroup, QObject *parent) :
-    QObject(parent), /*webView(0),*/ keepAuth(false), settingsGroup(_settingsGroup)
+OAuth::OAuth(QString _clientId, QString _settingsGroup, QObject *parent) :
+    QObject(parent), webView(0), keepAuth(false),
+    settingsGroup(_settingsGroup), client_id(_clientId)
 {
     cfg = new QSettings(QApplication::applicationName()+".ini",QSettings::IniFormat);
     cfg->beginGroup(settingsGroup);
@@ -17,24 +18,17 @@ OAuth::~OAuth()
 
 void OAuth::connect()
 {
-    loadAuthData();
-    if (keepAuth && !access_token.isNull()) {
-        //TODO нужна какая-нибудь проверка на истечение токена
-        emit setReady(true);
-    }
-    else {
-        requestToken();
+    if (keepAuth) {
+        loadAuthData();
     }
 }
 
 void OAuth::saveAuthData() const
 {
-    cfg->setValue("access_token", access_token);
 }
 
 void OAuth::loadAuthData()
 {
-    access_token = cfg->value("access_token").toString();
 }
 
 
@@ -50,7 +44,7 @@ bool OAuth::getKeepAuth()
 
 void OAuth::slotFinished(QNetworkReply *reply)
 {
-    QByteArray data = reply->readAll();
+//    QByteArray data = reply->readAll();
 
 
 

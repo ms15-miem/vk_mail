@@ -7,14 +7,16 @@ class Vk : public OAuth
 {
     Q_OBJECT
 
-    int clientId;
-
 public:
-    explicit Vk(int _clientId, QString _settingsGroup, QObject *parent = 0);
+    explicit Vk(QString _clientId, QString _settingsGroup, QObject *parent = 0);
     ~Vk();
+       void connect();
 
 protected:
-    void requestToken();
+    void getAcceptToken();
+    void saveAuthData() const;
+    void loadAuthData();
+    bool isAuthDataReady() const;
 
 signals:
 

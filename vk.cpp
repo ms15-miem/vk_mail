@@ -1,7 +1,7 @@
 #include "vk.h"
 
-Vk::Vk(int _clientId, QString _settingsGroup, QObject *parent) :
-    OAuth(_settingsGroup, parent), clientId(_clientId)
+Vk::Vk(QString _clientId, QString _settingsGroup, QObject *parent) :
+    OAuth(_clientId, _settingsGroup, parent)
 {
 }
 
@@ -11,9 +11,20 @@ Vk::~Vk()
 
 }
 
-void Vk::requestToken()
+void Vk::connect()
 {
-    QUrl url("http://api.vk.com/oauth/authorize?client_id=" + QString::number(clientId, 10)+ "&redirect_uri=http://api.vk.com/blank.html&scope=notify,friends,photos,audio,video,docs,notes,pages,wall,groups,messages,ads,offline&display=page&response_type=token");
+    OAuth::connect();
+
+        // здесь мб проверка не отменен ли доступ у приложения
+
+    if (access_token.isNull()) {
+        getAcceptToken();
+    }
+}
+
+void Vk::getAcceptToken()
+{
+    QUrl url("http://api.vk.com/oauth/authorize?client_id=" + client_id + "&redirect_uri=http://api.vk.com/blank.html&scope=notify,friends,photos,audio,video,docs,notes,pages,wall,groups,messages,ads,offline&display=page&response_type=token");
 
     webView = new QWebView;
 
@@ -22,8 +33,28 @@ void Vk::requestToken()
     QObject::connect(webView, SIGNAL(urlChanged(QUrl)), SLOT(slotUrlChanged(QUrl)));
 
     webView->show();
+}
 
-//    netManager->get(QNetworkRequest(url));
+void Vk::saveAuthData() const
+{
+        cfg->setValue("access_token", access_token);
+}
+
+void Vk::loadAuthData()
+{
+    access_token = cfg->value("access_token").toString();
+}
+
+bool Vk::isAuthDataReady() const
+{
+    // здесь можно добавить проверку, не запретил ли пользователь доступ к приложению
+
+    if (access_token.isNull()) {
+        return false;
+    }
+    else {
+        return true;
+    }
 }
 
 void Vk::slotUrlChanged(const QUrl &_url)

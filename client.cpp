@@ -3,10 +3,11 @@
 Client::Client(QObject *parent) :
     QObject(parent), vkReady(false), gmailReady(false)
 {
-    vk = new Vk(3353341, "vk", this);
+    vk = new Vk("3353341", "vk", this);
     vk->setKeepAuth(true);
 
-    gmail = new GMail("gmail", this);
+    gmail = new GMail("nJI6O41-oDgtcMA9Q_MmiyVt", "urn:ietf:wg:oauth:2.0:oob", "479175816888.apps.googleusercontent.com",
+                      "gmail", this);
 
     connect(vk, SIGNAL(setReady(bool)), SLOT(slotWork(bool)));
     connect(gmail, SIGNAL(setReady(bool)), SLOT(slotWork(bool)));
@@ -30,6 +31,6 @@ void Client::slotWork(bool ready)
     }
 
     if (vkReady && gmailReady) {
-        gmail->startCheckCycle();
+        gmail->slotStartCheckCycle();
     }
 }
