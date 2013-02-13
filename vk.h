@@ -10,10 +10,9 @@ class Vk : public OAuth
 public:
     explicit Vk(QString _clientId, QString _settingsGroup, QObject *parent = 0);
     ~Vk();
-       void connect();
+    void connect();
 
 protected:
-    void getAcceptToken();
     void saveAuthData() const;
     void loadAuthData();
     bool isAuthDataReady() const;
@@ -22,6 +21,9 @@ signals:
 
 private slots:
     void slotUrlChanged(const QUrl &_url);
+
+protected slots:
+    void slotGetAccessToken();
 
 public slots:
     void slotPost(const Message &msg);

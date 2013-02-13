@@ -6,7 +6,7 @@ GMail::GMail(QString _clientSecret, QString _redirectUri, QString _clientId,
     redirect_uri(_redirectUri), client_secret(_clientSecret)
 {
     expiredAcceptTokenTimer = new QTimer(this);
-    QObject::connect(expiredAcceptTokenTimer, SIGNAL(timeout()), SLOT(getAcceptToken()));
+    QObject::connect(expiredAcceptTokenTimer, SIGNAL(timeout()), SLOT(slotGetAccessToken()));
 }
 
 GMail::~GMail()
@@ -26,7 +26,7 @@ int GMail::getCheckInterval()
 void GMail::connect()
 {
     OAuth::connect();
-    if (refresh_token.isNull()) {
+    if (refresh_token.isNull() || refresh_token == "") {
         QObject::connect(this, SIGNAL(receivedAuthorizationCode()),
                          SLOT(slotGetRefreshAcceptTokens()));
         getAuthorizationCode();
@@ -34,7 +34,7 @@ void GMail::connect()
     else {
         // здесь мб проверка не отменен ли доступ у приложения
 
-        getAcceptToken();
+        slotGetAccessToken();
     }
 }
 
@@ -43,8 +43,36 @@ void GMail::test()
     emit setReady(true);
 }
 
+GMail::HttpAnswer GMail::jsonParser(QString line)
+{
+    HttpAnswer ans;
 
-void GMail::getAcceptToken()
+    QStringList lines = line.split('\n');
+
+    // куда без костылей?
+    lines[lines.count()-2] += ',';
+
+    for(int i = 1; i < lines.count()-1; i++) {
+        QStringList list = lines[i].split('\"');
+        if (lines[i].startsWith("  \"access_token\"")) {
+            ans.access_token = list[list.size()-2];
+        }
+        else if (lines[i].startsWith("  \"token_type\"")) {
+            ans.token_type = list[list.size()-2];
+        }
+        else if (lines[i].startsWith("  \"expires_in\"")) {
+            ans.expires_in = QString(list[list.size()-1].toStdString().substr(3, list[list.size()-1].size()-3-1).c_str()).toInt();
+        }
+        else if (lines[i].startsWith("  \"refresh_token\"")) {
+            ans.refresh_token = list[list.size()-2];
+        }
+    }
+
+    return ans;
+}
+
+
+void GMail::slotGetAccessToken()
 {
     QUrl url("https://accounts.google.com/o/oauth2/token");
     QNetworkRequest request(url);
@@ -131,26 +159,29 @@ void GMail::slotTitleChanged(QString title)
 
 void GMail::slotFinished(QNetworkReply *reply)
 {
-    QByteArray data = reply->readAll();
+    QString line = reply->readAll();
 
-    qDebug() << data;
+    qDebug() << line;
 
-//    if (reply->url().hasQueryItem("refresh_token")) {
-//        refresh_token = reply->url().queryItemValue("refresh_token");
-//        saveAuthData();
-//    }
+    HttpAnswer ans = jsonParser(line);
 
-//    if (reply->url().hasQueryItem("access_token")) {
-//        access_token = reply->url().queryItemValue("access_token");
-//        emit setReady(true);
-//    }
+    access_token = ans.access_token;
+    refresh_token = ans.refresh_token;
+    expires_in = ans.expires_in;
 
-//    if (reply->url().hasQueryItem("expires_in")) {
-//        expires_in = reply->url().queryItemValue("expires_in").toInt();
-//        expiredAcceptTokenTimer->start(expires_in*1000);
-//    }
+    expiredAcceptTokenTimer->start(expires_in*1000);
 
-    qDebug() << "GMail: slotFinished" << reply->url();
+    qDebug() << "GMail: slotFinished";
+
+    emit setReady(true);
+    if (!refresh_token.isNull() && refresh_token != "") {
+        saveAuthData();
+    }
 
     reply->deleteLater();
+}
+
+
+GMail::HttpAnswer::HttpAnswer():expires_in(0)
+{
 }

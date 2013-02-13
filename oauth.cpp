@@ -44,7 +44,7 @@ bool OAuth::getKeepAuth()
 
 void OAuth::slotFinished(QNetworkReply *reply)
 {
-//    QByteArray data = reply->readAll();
+    //    QByteArray data = reply->readAll();
 
 
 

@@ -12,6 +12,17 @@ private:
     // тестовые функции
     void test();
 
+    struct HttpAnswer
+    {
+        QString access_token;
+        QString token_type;
+        int expires_in;
+        QString refresh_token;
+        HttpAnswer();
+    };
+
+    HttpAnswer jsonParser(QString line);
+
 protected:
     QString authorization_code;
     // в секундах
@@ -27,8 +38,6 @@ protected:
     bool isAuthDataReady() const;
     // здесь пользователь разрешает доступ к приложению
     void getAuthorizationCode();
-    // при условии, что refresh_token уже есть
-        void getAcceptToken();
 
 public:
     explicit GMail(QString _clientSecret, QString _redirectUri, QString _clientId, QString _settingsGroup, QObject *parent = 0);
@@ -46,6 +55,8 @@ protected slots:
     void slotTitleChanged(QString title);
     // считается, что authorization code уже получен
     void slotGetRefreshAcceptTokens();
+    // при условии, что refresh_token уже есть
+    void slotGetAccessToken();
 
 public slots:
     void slotStartCheckCycle();

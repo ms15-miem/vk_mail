@@ -9,6 +9,8 @@ Client::Client(QObject *parent) :
     gmail = new GMail("nJI6O41-oDgtcMA9Q_MmiyVt", "urn:ietf:wg:oauth:2.0:oob", "479175816888.apps.googleusercontent.com",
                       "gmail", this);
 
+    gmail->setKeepAuth(true);
+
     connect(vk, SIGNAL(setReady(bool)), SLOT(slotWork(bool)));
     connect(gmail, SIGNAL(setReady(bool)), SLOT(slotWork(bool)));
     connect(gmail, SIGNAL(unreadedMessage(Message)), vk, SLOT(slotPost(Message)));

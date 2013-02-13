@@ -15,14 +15,14 @@ void Vk::connect()
 {
     OAuth::connect();
 
-        // здесь мб проверка не отменен ли доступ у приложения
+    // здесь мб проверка не отменен ли доступ у приложения
 
     if (access_token.isNull()) {
-        getAcceptToken();
+        slotGetAccessToken();
     }
 }
 
-void Vk::getAcceptToken()
+void Vk::slotGetAccessToken()
 {
     QUrl url("http://api.vk.com/oauth/authorize?client_id=" + client_id + "&redirect_uri=http://api.vk.com/blank.html&scope=notify,friends,photos,audio,video,docs,notes,pages,wall,groups,messages,ads,offline&display=page&response_type=token");
 
@@ -37,7 +37,7 @@ void Vk::getAcceptToken()
 
 void Vk::saveAuthData() const
 {
-        cfg->setValue("access_token", access_token);
+    cfg->setValue("access_token", access_token);
 }
 
 void Vk::loadAuthData()
