@@ -27,7 +27,6 @@ protected:
 
     virtual void saveAuthData() const;
     virtual void loadAuthData();
-    virtual bool isAuthDataReady() const=0;
 
 public:
     explicit OAuth(QString _clientId, QString _settingsGroup, QObject *parent = 0);

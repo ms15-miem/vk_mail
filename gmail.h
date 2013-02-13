@@ -35,7 +35,6 @@ protected:
 
     void saveAuthData() const;
     void loadAuthData();
-    bool isAuthDataReady() const;
     // здесь пользователь разрешает доступ к приложению
     void getAuthorizationCode();
 

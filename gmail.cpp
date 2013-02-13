@@ -98,11 +98,6 @@ void GMail::loadAuthData()
     refresh_token = cfg->value("refresh_token").toString();
 }
 
-bool GMail::isAuthDataReady() const
-{
-    return false;
-}
-
 void GMail::getAuthorizationCode()
 {
     QUrl url("https://accounts.google.com/o/oauth2/auth?response_type=code&client_id=" + client_id + "&redirect_uri=" + redirect_uri + "&scope=https://mail.google.com/mail/feed/atom/");

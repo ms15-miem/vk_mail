@@ -15,7 +15,6 @@ public:
 protected:
     void saveAuthData() const;
     void loadAuthData();
-    bool isAuthDataReady() const;
 
 signals:
 

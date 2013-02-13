@@ -45,18 +45,6 @@ void Vk::loadAuthData()
     access_token = cfg->value("access_token").toString();
 }
 
-bool Vk::isAuthDataReady() const
-{
-    // здесь можно добавить проверку, не запретил ли пользователь доступ к приложению
-
-    if (access_token.isNull()) {
-        return false;
-    }
-    else {
-        return true;
-    }
-}
-
 void Vk::slotUrlChanged(const QUrl &_url)
 {
     QUrl url = _url.toString().replace('#', '?');
