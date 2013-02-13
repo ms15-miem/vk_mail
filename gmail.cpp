@@ -168,7 +168,10 @@ void GMail::slotFinished(QNetworkReply *reply)
 
     qDebug() << "GMail: slotFinished";
 
-    emit setReady(true);
+    if (!access_token.isNull() && access_token != "") {
+        emit setReady(true);
+    }
+
     if (!refresh_token.isNull() && refresh_token != "") {
         saveAuthData();
     }

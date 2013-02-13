@@ -17,8 +17,11 @@ void Vk::connect()
 
     // здесь мб проверка не отменен ли доступ у приложения
 
-    if (access_token.isNull()) {
+    if (access_token.isNull() || access_token == "") {
         slotGetAccessToken();
+    }
+    else {
+        emit setReady(true);
     }
 }
 
