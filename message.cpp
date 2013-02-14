@@ -1,10 +1,21 @@
 #include "message.h"
 
-Message::Message(QString _text):text(_text)
+Message::Message(QString text):date(),from(),subj(),body(text)
 {
+
 }
 
 QString Message::getText() const
 {
-    return text;
+    QString ENDL("\n");
+    return  date+ENDL+
+            QString("New message from ")+from+ENDL+
+            QString("Subject:")+subj+ENDL+
+            body;
+}
+
+QString Message::getAttachments() const
+{
+//TODO
+    return QString("\nAttachments:\n");
 }
