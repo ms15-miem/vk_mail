@@ -27,6 +27,7 @@ void Client::slotWork(bool ready)
 {
     if (qobject_cast<Vk*>(sender())) {
         vkReady = ready;
+        vk->getNewMessages();
     }
     else if (qobject_cast<GMail*>(sender())) {
         gmailReady = ready;

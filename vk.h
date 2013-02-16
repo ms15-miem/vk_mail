@@ -11,6 +11,8 @@ public:
     explicit Vk(QString _clientId, QString _settingsGroup, QObject *parent = 0);
     ~Vk();
     void connect();
+    void getNewMessages();
+
 
 protected:
     void saveAuthData() const;
@@ -23,6 +25,7 @@ private slots:
 
 protected slots:
     void slotGetAccessToken();
+    void slotFinished(QNetworkReply *reply);
 
 public slots:
     void slotPost(const Message &msg);

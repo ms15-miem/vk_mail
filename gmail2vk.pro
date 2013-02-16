@@ -30,3 +30,9 @@ FORMS    +=
 
 
 QT += network webkit
+
+HEADERS += \
+    jsonparser.h
+
+SOURCES += \
+    jsonparser.cpp

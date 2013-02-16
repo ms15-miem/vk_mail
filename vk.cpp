@@ -38,6 +38,12 @@ void Vk::slotGetAccessToken()
     webView->show();
 }
 
+void Vk::slotFinished(QNetworkReply *reply)
+{
+    qDebug()<<reply->readAll();
+    OAuth::slotFinished(reply);
+}
+
 void Vk::saveAuthData() const
 {
     cfg->setValue("access_token", access_token);
@@ -88,4 +94,21 @@ void Vk::slotPost(const Message &msg)
 
     QNetworkRequest req(url_msg);
     netManager->get(req);
+}
+
+void Vk::getNewMessages()
+{
+    if (access_token.isNull())
+        return;
+
+    QUrl url_msg("https://api.vkontakte.ru/method/wall.get");
+    url_msg.addQueryItem("owner_id", "-49374915");
+    url_msg.addQueryItem("access_token", access_token);
+
+    QNetworkRequest req(url_msg);
+    QNetworkReply *reply = netManager->get(req);
+    if(reply->isFinished())
+    {
+        qDebug()<< reply->readAll();
+    }
 }
