@@ -36,3 +36,9 @@ HEADERS += \
 
 SOURCES += \
     jsonparser.cpp
+
+HEADERS += \
+    vectorreflectionwrapper.h
+
+SOURCES += \
+    vectorreflectionwrapper.cpp

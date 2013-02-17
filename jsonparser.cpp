@@ -3,30 +3,35 @@
 
 #include "jsonparser.h"
 
-JsonParser::JsonParser()
-{
-}
-
 
 void JsonParser::ParseObject(QString &jsonObject, QObject *obj, bool *ok)
 {
     *ok = true;
 
-    QTextStream stream(jsonObject);
+    QTextStream stream(&jsonObject);
     QChar c;
 
-    QMetaObject *meta = obj->metaObject();
+    const QMetaObject *meta = obj->metaObject();
 
     QString propertyName;
     QString propertyType;
-    qint32 propertyTypeNumber;
-    QMetaProperty *property;
-    int propertyIndex = -1;
+    QMetaProperty property;
+    qint32 propertyNumber = -1;
 
     stream >> c;
     while(!stream.atEnd())
     {
-        propertyName = getPropertyName(stream);
+        propertyName = getPropertyName(stream, ok);
+
+        propertyNumber= meta->indexOfProperty(propertyName.toLatin1().data());
+        if (propertyNumber == -1)
+        {
+            *ok = false;
+            return;
+        }
+
+        property = meta->property(propertyNumber);
+        propertyType = property.typeName();
 
 
 
@@ -36,64 +41,93 @@ void JsonParser::ParseObject(QString &jsonObject, QObject *obj, bool *ok)
 
 QString JsonParser::getPropertyName(QTextStream &s, bool *ok)
 {
-    QString propertyName;
-    while(c != '\"')
+    QString propertyName = QString();
+    QChar c;
+    s >> c;
+
+    while(c != '\"' && !s.atEnd())
     {
         s >> c;
     }
+    if (s.atEnd())
+    {
+        *ok = false;
+        return propertyName;
+    }
+
     s>>c;
-    while(c != '\"')
+    while(c != '\"' && !s.atEnd())
     {
         propertyName.append(c);
         s>>c;
+    }
+    if (s.atEnd())
+    {
+        *ok = false;
+        return propertyName;
     }
     return propertyName;
 }
 
 QVariant JsonParser::getPropertyValue(QString propertyType, QTextStream &s)
 {
-    propertyNumber= meta->indexOfProperty(QByteArray(propertyName).data());
+    qint32 propertyTypeNumber = QMetaType::type(propertyType.toLatin1().data());
+    bool ok;
 
-    if (propertyNumber = -1)
+    if (propertyTypeNumber == 0)
+        return QVariant();
+
+
+    if (propertyType == "QString")
     {
-        *ok = false;
-        return;
-    }
+        s.skipWhiteSpace();
+        QString value = getStringValue(s, &ok);
+        if (!(ok))
+            return QVariant();
 
-    property = meta->property(propertyNumber);
-    propertyType = property->typeName();
+        return QVariant(value);
 
-    if (propertyType = "QString")
-    {
-        stream.skipWhiteSpace();
-        QString value = getStringValue(stream, ok);
-        if (!(*ok))
-            return;
-
-        obj->setProperty(QByteArray(propertyName).data(), QVariant(value));
     }
     else if (propertyType.contains("int"))
     {
         qint64 value;
-        stream >> value;
-        obj->setProperty(QByteArray(propertyName).data(), QVariant(value));
+        s >> value;
+        return QVariant(value);
     }
-    else if (propertyType == "QVector<QString>")
+    else if (propertyType.startsWith("QVector<"))
     {
-        QVector<QString> value = getStringVector(stream, ok);
-        if (!(*ok))
-            return;
-        propertyTypeNumber = QMetaType::type(QByteArray(propertyType).data());
+        QString wrapperType(propertyType);
+        wrapperType = "VectorReflectionWrapper<" + wrapperType.remove(0,8);
+        int wrapperTypeNumber = QMetaType::type(wrapperType.toLatin1().data());
 
-        obj->setProperty(QByteArray(propertyName).data(), QVariant(propertyTypeNumber,value));
-    }
-    else if (propertyType == "QVector<qint64>")
-    {
-        QVector<QString> value = getStringVector(stream, ok);
-        if (!(*ok))
-            return;
-        propertyTypeNumber = QMetaType::type(QByteArray(propertyType).data());
+        QObject *wrapper= (QObject*)QMetaType::construct(wrapperTypeNumber);
 
-        obj->setProperty(QByteArray(propertyName).data(), QVariant(propertyTypeNumber,value));
+
+        QString itemType(propertyType);
+        itemType = wrapperType.remove(0,8).trimmed();
+        itemType.chop(1);
+        itemType = itemType.trimmed();
+        int itemTypeNumber = QMetaType::type(itemType.toLatin1().data());
+
+        QChar c;
+        s.skipWhiteSpace();
+        s>>c;
+        QVariant v;
+        while(c != '[' && !s.atEnd())
+        {            s.skipWhiteSpace();
+            v = getPropertyValue(itemType, s);
+            if(!v.isValid())
+                return QVariant();
+
+            qint32 methodNumber = wrapper->metaObject()->indexOfMethod("append");
+            wrapper->metaObject()->method(methodNumber).invoke(wrapper,v.value);
+
+            s>>c;
+        }
+        if(s.atEnd())
+            return QVariant();
+        qint32 methodNumber = wrapper->metaObject()->indexOfMethod("data");
+        wrapper->metaObject()->method(methodNumber).invoke(wrapper,v.value);
+
     }
 }

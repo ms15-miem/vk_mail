@@ -10,7 +10,7 @@ class JsonParser
 public:
     static void ParseObject(QString &jsonObject, QObject* obj, bool* ok);
 private:
-    static QString getPropertyName(QTextStream& s);
+    static QString getPropertyName(QTextStream& s, bool* ok);
     static QVariant getPropertyValue(QString propertyType, QTextStream &s);
   //  static void Parse
 };
