@@ -94,7 +94,7 @@ QVariant JsonParser::getPropertyValue(QString propertyType, QTextStream &s)
         s >> value;
         return QVariant(value);
     }
-    else if (propertyType.startsWith("QVector<"))
+    else if (propertyType.startsWith("QList<"))
     {
         QString wrapperType(propertyType);
         wrapperType = "VectorReflectionWrapper<" + wrapperType.remove(0,8);
@@ -120,7 +120,7 @@ QVariant JsonParser::getPropertyValue(QString propertyType, QTextStream &s)
                 return QVariant();
 
             qint32 methodNumber = wrapper->metaObject()->indexOfMethod("append");
-            wrapper->metaObject()->method(methodNumber).invoke(wrapper,v.value);
+            wrapper->metaObject()->method(methodNumber).invoke(wrapper,Q_ARG(v.value);
 
             s>>c;
         }
