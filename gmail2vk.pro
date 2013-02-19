@@ -31,14 +31,3 @@ FORMS    +=
 
 QT += network webkit
 
-HEADERS += \
-    jsonparser.h
-
-SOURCES += \
-    jsonparser.cpp
-
-HEADERS += \
-    vectorreflectionwrapper.h
-
-SOURCES += \
-    vectorreflectionwrapper.cpp
