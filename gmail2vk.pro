@@ -29,5 +29,11 @@ HEADERS  += \
 FORMS    +=
 
 
-QT += network webkit
+QT += network webkit xml
+
+HEADERS += \
+    vkmessage.h
+
+SOURCES += \
+    vkmessage.cpp
 

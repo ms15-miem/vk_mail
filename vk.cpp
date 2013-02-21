@@ -1,4 +1,6 @@
+#include <QtXml/QDomDocument>
 #include "vk.h"
+#include "vkmessage.h"
 
 Vk::Vk(QString _clientId, QString _settingsGroup, QObject *parent) :
     OAuth(_clientId, _settingsGroup, parent)
@@ -38,11 +40,54 @@ void Vk::slotGetAccessToken()
     webView->show();
 }
 
-void Vk::slotFinished(QNetworkReply *reply)
+void Vk::slotMessagesRequestFinished()
 {
-    qDebug()<<reply->readAll();
-    OAuth::slotFinished(reply);
+    QNetworkReply *reply = qobject_cast<QNetworkReply*>(sender());
+    QString s = QString::fromUtf8(reply->readAll().data());
+    qDebug()<<s;
+    QDomDocument doc;
+    doc.setContent(s);
+    qSort(c);
+    QDomElement node = doc.documentElement();
+    bool ok = true;
+    qint32 count = node.firstChild()
+            .firstChild()
+            .toText()
+            .data()
+            .toInt(&ok);
+    node = node.firstChildElement();
+    for(qint32 i = 0; i<count; i++)
+    {
+        node = node.nextSiblingElement();
+        qDebug()<<node.nodeName();
+        QString id = node.firstChildElement("from_id").text();
+        QString text = node.firstChildElement("text").text();
+        QString date = node.firstChildElement("date").text();
+        VkMessage *msg = new VkMessage(id,text,date);
+        if(id.toInt() >= 0)
+        {
+            QUrl url_msg("https://api.vkontakte.ru/method/users.get.xml");
+            url_msg.addQueryItem("uids", id);
+            url_msg.addQueryItem("fields","first_name,last_name,nickname");
+            url_msg.addQueryItem("access_token", access_token);
+            QNetworkRequest req(url_msg);
+            QNetworkReply *rep = netManager->get(req);
+            QObject::connect(rep, SIGNAL(finished()), msg, SLOT(slotUserRequestFinished()));
+        }
+        else
+        {
+            QUrl url_msg("https://api.vkontakte.ru/method/groups.getById.xml");
+            url_msg.addQueryItem("gids", id);
+            url_msg.addQueryItem("access_token", access_token);
+            QNetworkRequest req(url_msg);
+            QNetworkReply *rep = netManager->get(req);
+            QObject::connect(rep, SIGNAL(finished()), msg, SLOT(slotGroupRequestFinished()));
+
+        }
+    }
 }
+
+
 
 void Vk::saveAuthData() const
 {
@@ -101,12 +146,13 @@ void Vk::getNewMessages()
     if (access_token.isNull())
         return;
 
-    QUrl url_msg("https://api.vkontakte.ru/method/wall.get");
+    QUrl url_msg("https://api.vkontakte.ru/method/wall.get.xml");
     url_msg.addQueryItem("owner_id", "-49374915");
     url_msg.addQueryItem("access_token", access_token);
 
     QNetworkRequest req(url_msg);
     QNetworkReply *reply = netManager->get(req);
+    QObject::connect(reply, SIGNAL(finished()), this, SLOT(slotMessagesRequestFinished()));
     if(reply->isFinished())
     {
         qDebug()<< reply->readAll();

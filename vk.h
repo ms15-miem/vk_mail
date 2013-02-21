@@ -25,7 +25,7 @@ private slots:
 
 protected slots:
     void slotGetAccessToken();
-    void slotFinished(QNetworkReply *reply);
+    void slotMessagesRequestFinished();
 
 public slots:
     void slotPost(const Message &msg);
