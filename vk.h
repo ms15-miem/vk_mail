@@ -2,16 +2,33 @@
 #define VK_H
 
 #include "oauth.h"
+#include "vkmessage.h"
+#include "message.h"
 
 class Vk : public OAuth
 {
     Q_OBJECT
 
+private:
+    QList<VkMessage*> pendingMessages;
+    QList<qint32> uidsToRequest;
+    QList<qint32> gidsToRequest;
+    qint32 lastId;
+    qint32 nextLastId;
+    qint32 nextLastDate;
+    qint32 checkIntervalMinutes;
+    qint32 lastDate;
+    qint32 offset;
+    QTimer* refreshTimer;
+    void requestUsers(QList<qint32> uids);
+    void requestGroups(QList<qint32> gids);
+
 public:
     explicit Vk(QString _clientId, QString _settingsGroup, QObject *parent = 0);
     ~Vk();
     void connect();
-    void getNewMessages();
+    void setCheckInterval(int minutes);
+    int getCheckInterval();
 
 
 protected:
@@ -19,9 +36,13 @@ protected:
     void loadAuthData();
 
 signals:
+    void unreadedMessage(Message msg);
 
 private slots:
     void slotUrlChanged(const QUrl &_url);
+    void slotUserRequestFinished();
+    void slotGroupRequestFinished();
+    void slotGetMessages();
 
 protected slots:
     void slotGetAccessToken();
@@ -29,6 +50,7 @@ protected slots:
 
 public slots:
     void slotPost(const Message &msg);
+    void slotStartCheckCycle();
 };
 
 #endif // VK_H

@@ -1,24 +1,35 @@
 #include <QNetworkReply>
 #include <QDebug>
+#include <QDateTime>
 #include "vkmessage.h"
 
 
-void VkMessage::slotUserRequestFinished()
+void VkMessage::setAuthor(QString name)
 {
-    QNetworkReply *rep = qobject_cast<QNetworkReply*>(sender());
-    qDebug()<<rep->readAll();
-}
-
-void VkMessage::slotGroupRequestFinished()
-{
-    QNetworkReply *rep = qobject_cast<QNetworkReply*>(sender());
-    qDebug()<<rep->readAll();
+    this->from = name;
 }
 
 
-VkMessage::VkMessage(QString authorId, QString text, QString date, QObject *parent):QObject(parent)
+
+bool lessThanById(VkMessage* m1, VkMessage* m2)
 {
-    this->authorId = authorId;
-    this->text = text;
-    this->date = date;
+    return m1->authorId < m2->authorId;
+}
+
+
+bool lessThanByDate(VkMessage* m1, VkMessage* m2)
+{
+    return m1->date < m2->date;
+}
+
+
+qint32 VkMessage::getId()
+{
+    return authorId;
+}
+
+VkMessage::VkMessage(QString authorId, QString text, QString date)
+    :Message(QDateTime::fromTime_t(date.toInt()).toString(), "", text)
+{
+    this->authorId = authorId.toInt();
 }

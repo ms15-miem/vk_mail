@@ -5,6 +5,7 @@
 
 class Message
 {
+protected:
     QString date;   // Mon, 11 Feb 2013 21:22:08 +0400
     QString from; // =?UTF-8?B?0J/RgNC+0LXQutGCIFFJUA==?= <noreply@copiny.com>
     //QString To; // user@domain.ru
@@ -12,7 +13,8 @@ class Message
     QString body;  //UTF-8
 
 public:
-    Message(QString _text);
+    explicit Message(QString _text);
+    Message(QString _date, QString _from, QString _text);
     QString getText() const;
     QString getAttachments() const;
 };
