@@ -64,10 +64,8 @@ void Vk::slotMessagesRequestFinished()
 {
     QNetworkReply *reply = qobject_cast<QNetworkReply*>(sender());
     QString s = QString::fromUtf8(reply->readAll().data());
-    qDebug()<<s;
     QDomDocument doc;
     doc.setContent(s);
-    qDebug()<<doc.toString();
 
     QHash<qint32, QString> names = parseUsers(doc).unite(parseGroups(doc));
 
@@ -290,7 +288,7 @@ QHash<qint32, QString> Vk::parseGroups(QDomDocument &xml)
         qint32 id = node.firstChildElement("gid").text().toInt();
         QString name = node.firstChildElement("name").text();
         result.insert(-id, name);
-        node = node.nextSiblingElement("user");
+        node = node.nextSiblingElement("group");
     }
     return result;
 }
