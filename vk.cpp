@@ -14,7 +14,7 @@ Vk::Vk(QString _clientId, QString _settingsGroup, QObject *parent) :
     offset = 0;
     refreshTimer = new QTimer(this);
     checkIntervalMinutes = 1;
-    QObject::connect(refreshTimer, SIGNAL(timeout()), this, SLOT(slotGetMessages()));
+    QObject::connect(refreshTimer, SIGNAL(timeout()), this, SLOT(slotCheckMessages()));
 }
 
 Vk::~Vk()
@@ -71,12 +71,9 @@ void Vk::slotMessagesRequestFinished()
 
     bool ok = true;
     bool fin = false;
-    bool first = false;
     qint32 count = node.text().toInt(&ok);
     if(count == 0)
         fin = true;
-    if (offset == 0)
-        first = true;
 
     for(qint32 i = 0; i<count; i++)
     {
@@ -86,12 +83,6 @@ void Vk::slotMessagesRequestFinished()
         QString date = node.firstChildElement("date").text();
         qint32 msgId = node.firstChildElement("id").text().toInt();
         qint32 intId = id.toInt();
-        if(first)
-        {
-            nextLastId = msgId;
-            first = false;
-            nextLastDate = date.toInt();
-        }
         if (msgId<=lastId || date.toInt() < lastDate)
         {
             fin = true;
@@ -190,7 +181,7 @@ void Vk::slotGetMessages()
 
     QUrl url_msg("https://api.vkontakte.ru/method/wall.get.xml");
     url_msg.addQueryItem("owner_id", "-49374915");
-    if (offset >0)
+    if (offset > 0)
     {
         url_msg.addQueryItem("offset", QString::number(offset));
     }
@@ -203,6 +194,44 @@ void Vk::slotGetMessages()
     {
         qDebug()<< reply->readAll();
     }
+}
+
+void Vk::slotCheckMessages()
+{
+    if (access_token.isNull())
+        return;
+
+    QUrl url_msg("https://api.vkontakte.ru/method/wall.get.xml");
+    url_msg.addQueryItem("owner_id", "-49374915");
+    url_msg.addQueryItem("count","1");
+    url_msg.addQueryItem("access_token", access_token);
+
+    QNetworkRequest req(url_msg);
+    QNetworkReply *reply = netManager->get(req);
+    QObject::connect(reply, SIGNAL(finished()), this, SLOT(slotCheckRequestFinished()));
+}
+
+void Vk::slotCheckRequestFinished()
+{
+    QNetworkReply *reply = qobject_cast<QNetworkReply*>(sender());
+    QString s = QString::fromUtf8(reply->readAll().data());
+    QDomDocument doc;
+    doc.setContent(s);
+    QDomElement node = doc.documentElement().firstChildElement("count");
+
+    qint32 count = node.text().toInt();
+    if(count == 0)
+        return;
+    node = node.nextSiblingElement("post");
+    QString date = node.firstChildElement("date").text();
+    qint32 msgId = node.firstChildElement("id").text().toInt();
+    if(msgId > lastId || date.toInt() > lastDate)
+    {
+        nextLastId = msgId;
+        nextLastDate = date.toInt();
+        slotGetMessages();
+    }
+
 }
 
 
@@ -300,8 +329,7 @@ void Vk::slotUserRequestFinished()
     qSort(messagesToSend.begin(), messagesToSend.end(), lessThanByDate);
     for(msg = messagesToSend.begin(); msg != messagesToSend.end(); ++msg)
     {
-        emit unreadedMessage(*(*msg));
-        delete (*msg);
+        emit unreadedMessage((*msg));
     }
 
 }
@@ -347,8 +375,7 @@ void Vk::slotGroupRequestFinished()
     qSort(messagesToSend.begin(), messagesToSend.end(), lessThanByDate);
     for(msg = messagesToSend.begin(); msg != messagesToSend.end(); ++msg)
     {
-        emit unreadedMessage(*(*msg));
-        delete *msg;
+        emit unreadedMessage((*msg));
     }
 
 }

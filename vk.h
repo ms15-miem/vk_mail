@@ -47,6 +47,8 @@ private slots:
     void slotUserRequestFinished();
     void slotGroupRequestFinished();
     void slotGetMessages();
+    void slotCheckMessages();
+    void slotCheckRequestFinished();
 
 protected slots:
     void slotGetAccessToken();

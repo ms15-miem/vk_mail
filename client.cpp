@@ -28,7 +28,7 @@ void Client::slotWork(bool ready)
     if (qobject_cast<Vk*>(sender())) {
         vkReady = ready;
         vk->slotStartCheckCycle();
-        QObject::connect(vk, SIGNAL(unreadedMessage(Message)), this, SLOT(testSlot(Message)));
+        QObject::connect(vk, SIGNAL(unreadedMessage(Message*)), this, SLOT(testSlot(Message*)));
     }
     else if (qobject_cast<GMail*>(sender())) {
         gmailReady = ready;
@@ -39,7 +39,7 @@ void Client::slotWork(bool ready)
     }
 }
 
-void Client::testSlot(Message msg)
+void Client::testSlot(Message* msg)
 {
-    qDebug()<<"text"<<msg.getText();
+    qDebug()<<"text"<<msg->getText();
 }
