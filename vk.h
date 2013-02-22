@@ -12,8 +12,6 @@ class Vk : public OAuth
 
 private:
     QList<VkMessage*> pendingMessages;
-    QList<qint32> uidsToRequest;
-    QList<qint32> gidsToRequest;
     qint32 lastId;
     qint32 nextLastId;
     qint32 nextLastDate;
@@ -21,12 +19,11 @@ private:
     qint32 lastDate;
     qint32 offset;
     QTimer* refreshTimer;
-    void requestUsers(QList<qint32> uids);
-    void requestGroups(QList<qint32> gids);
-    QList<VkMessage*> parseMessages(QDomDocument xml);
-    QHash<qint32,QString> parseUsres(QDomDocument xml);
-    QHash<qint32,QString> parseGroups(QDomDocument xml);
-
+    QList<VkMessage*> parseMessages(QDomDocument& xml, QHash<qint32, QString>& names, bool* fin);
+    QHash<qint32,QString> parseUsers(QDomDocument& xml);
+    QHash<qint32,QString> parseGroups(QDomDocument& xml);
+    void getMessages();
+    void returnMessages();
 public:
     explicit Vk(QString _clientId, QString _settingsGroup, QObject *parent = 0);
     ~Vk();
@@ -44,9 +41,6 @@ signals:
 
 private slots:
     void slotUrlChanged(const QUrl &_url);
-    void slotUserRequestFinished();
-    void slotGroupRequestFinished();
-    void slotGetMessages();
     void slotCheckMessages();
     void slotCheckRequestFinished();
 
