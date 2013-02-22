@@ -301,7 +301,6 @@ void Vk::slotUserRequestFinished()
     for(msg = messagesToSend.begin(); msg != messagesToSend.end(); ++msg)
     {
         emit unreadedMessage((*msg));
-        delete (*msg);
     }
 
 }
@@ -348,7 +347,6 @@ void Vk::slotGroupRequestFinished()
     for(msg = messagesToSend.begin(); msg != messagesToSend.end(); ++msg)
     {
         emit unreadedMessage((*msg));
-        delete *msg;
     }
 
 }
