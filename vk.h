@@ -1,6 +1,7 @@
 #ifndef VK_H
 #define VK_H
 
+#include <QDomDocument>
 #include "oauth.h"
 #include "vkmessage.h"
 #include "message.h"
@@ -22,6 +23,9 @@ private:
     QTimer* refreshTimer;
     void requestUsers(QList<qint32> uids);
     void requestGroups(QList<qint32> gids);
+    QList<VkMessage*> parseMessages(QDomDocument xml);
+    QHash<qint32,QString> parseUsres(QDomDocument xml);
+    QHash<qint32,QString> parseGroups(QDomDocument xml);
 
 public:
     explicit Vk(QString _clientId, QString _settingsGroup, QObject *parent = 0);
@@ -36,7 +40,7 @@ protected:
     void loadAuthData();
 
 signals:
-    void unreadedMessage(Message msg);
+    void unreadedMessage(Message* msg);
 
 private slots:
     void slotUrlChanged(const QUrl &_url);
