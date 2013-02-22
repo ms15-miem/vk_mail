@@ -1,10 +1,11 @@
 #ifndef MESSAGE_H
 #define MESSAGE_H
 
-#include <QString>
+#include <QObject>
 
-class Message
+class Message : public QObject
 {
+    Q_OBJECT
 protected:
     QString date;   // Mon, 11 Feb 2013 21:22:08 +0400
     QString from; // =?UTF-8?B?0J/RgNC+0LXQutGCIFFJUA==?= <noreply@copiny.com>
@@ -15,7 +16,7 @@ protected:
 public:
     explicit Message(QString _text);
     Message(QString _date, QString _from, QString _text);
-    QString getText() const;
+    virtual QString getText() const;
     QString getAttachments() const;
 };
 
