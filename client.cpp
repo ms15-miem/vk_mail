@@ -39,7 +39,7 @@ void Client::slotWork(bool ready)
     }
 }
 
-void Client::testSlot(Message msg)
+void Client::testSlot(Message *msg)
 {
-    qDebug()<<"text"<<msg.getText();
+    qDebug()<<"text"<<msg->getText();
 }

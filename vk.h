@@ -36,7 +36,7 @@ protected:
     void loadAuthData();
 
 signals:
-    void unreadedMessage(Message msg);
+    void unreadedMessage(Message* msg);
 
 private slots:
     void slotUrlChanged(const QUrl &_url);

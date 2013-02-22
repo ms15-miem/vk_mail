@@ -300,7 +300,7 @@ void Vk::slotUserRequestFinished()
     qSort(messagesToSend.begin(), messagesToSend.end(), lessThanByDate);
     for(msg = messagesToSend.begin(); msg != messagesToSend.end(); ++msg)
     {
-        emit unreadedMessage(*(*msg));
+        emit unreadedMessage((*msg));
         delete (*msg);
     }
 
@@ -347,7 +347,7 @@ void Vk::slotGroupRequestFinished()
     qSort(messagesToSend.begin(), messagesToSend.end(), lessThanByDate);
     for(msg = messagesToSend.begin(); msg != messagesToSend.end(); ++msg)
     {
-        emit unreadedMessage(*(*msg));
+        emit unreadedMessage((*msg));
         delete *msg;
     }
 
