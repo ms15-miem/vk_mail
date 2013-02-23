@@ -10,8 +10,8 @@
 
 ### Запуск на локальной машине
 
-*   [Скачать](https://github.com/narcjkeee/vk_mail/tree/master/release-win32/gmail2vk.zip), распаковать. Или просто 
-    > git clone https://github.com/narcjkeee/vk_mail.git
+*   [Скачать](https://github.com/ms15-miem/vk_mail/tree/master/release-win32/gmail2vk.zip), распаковать. Или просто 
+    > git clone https://github.com/ms15-miem/vk_mail.git
 
 *   Запустить. Ввести логин и пароль от ВКонтакте.
 
