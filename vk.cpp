@@ -129,6 +129,7 @@ void Vk::slotPost(const Message *msg)
     url_msg.addQueryItem("owner_id", "-49374915");
 
     QString message = msg->getText();
+    msg->deleteLater();
 
     url_msg.addEncodedQueryItem("message", QUrl::toPercentEncoding(message));
 
