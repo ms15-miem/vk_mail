@@ -9,6 +9,20 @@ void VkMessage::setAuthor(QString name)
     this->from = name;
 }
 
+void VkMessage::addAttachments(const QList<QString> &list)
+{
+    attachments.append(list);
+}
+
+QString VkMessage::getText() const
+{
+    QString result = Message::getText();
+    QTextStream st(&result);
+    for(int i =0; i<attachments.count();i++)
+        st<<endl<<attachments.at(i);
+    return result;
+}
+
 
 
 bool lessThanById(VkMessage* m1, VkMessage* m2)

@@ -22,6 +22,7 @@ private:
     QList<VkMessage*> parseMessages(QDomDocument& xml, QHash<qint32, QString>& names, bool* fin);
     QHash<qint32,QString> parseUsers(QDomDocument& xml);
     QHash<qint32,QString> parseGroups(QDomDocument& xml);
+    QList<QString> parseAttachments(QDomElement &e);
     void getMessages();
     void returnMessages();
 public:

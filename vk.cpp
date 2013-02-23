@@ -64,6 +64,7 @@ void Vk::slotMessagesRequestFinished()
 {
     QNetworkReply *reply = qobject_cast<QNetworkReply*>(sender());
     QString s = QString::fromUtf8(reply->readAll().data());
+    qDebug()<<s;
     QDomDocument doc;
     doc.setContent(s);
 
@@ -248,6 +249,7 @@ QList<VkMessage *> Vk::parseMessages(QDomDocument &xml, QHash<qint32, QString> &
         VkMessage *msg = new VkMessage(id,text,date);
         if (names.contains(intId))
             msg->setAuthor(names.value(intId));
+        msg->addAttachments(parseAttachments(node));
         result<<msg;
     }
     return result;
@@ -255,7 +257,6 @@ QList<VkMessage *> Vk::parseMessages(QDomDocument &xml, QHash<qint32, QString> &
 
 QHash<qint32, QString> Vk::parseUsers(QDomDocument &xml)
 {
-    qDebug()<<xml.toString();
     QHash<qint32, QString> result;
 
     QDomElement node = xml.documentElement().firstChildElement("profiles");
@@ -290,6 +291,39 @@ QHash<qint32, QString> Vk::parseGroups(QDomDocument &xml)
         QString name = node.firstChildElement("name").text();
         result.insert(-id, name);
         node = node.nextSiblingElement("group");
+    }
+    return result;
+}
+
+QList<QString> Vk::parseAttachments(QDomElement &e)
+{
+    QList<QString> result;
+    QDomElement node = e.firstChildElement("attachments").firstChildElement("attachment");
+    QDomElement innerNode;
+    QString type;
+    while(!node.isNull())
+    {
+        type = node.firstChildElement("type").text().trimmed();
+        innerNode = node.firstChildElement().nextSiblingElement();
+        if(type == "photo" || type == "posted_photo")
+        {
+            result<<innerNode.firstChildElement("src_big").text();
+        }
+        else if(type =="video")
+        {
+            QString link = "http://vk.com/video";
+            link.append(innerNode.firstChildElement("owner_id").text().trimmed());
+            link.append("_");
+            link.append(innerNode.firstChildElement("vid").text().trimmed());
+            result<<link;
+        }
+        else if(type == "audio")
+        {
+            QString name = "Audio: " + innerNode.firstChildElement("performer").text().trimmed()
+                    + "-" + innerNode.firstChildElement("title").text().trimmed();
+            result<<name;
+        }
+        node = node.nextSiblingElement();
     }
     return result;
 }
