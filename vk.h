@@ -41,7 +41,7 @@ signals:
     void unreadedMessage(Message* msg);
 
 private slots:
-    void slotUrlChanged(const QUrl &_url);
+//    void slotUrlChanged(const QUrl &_url);
     void slotCheckMessages();
     void slotCheckRequestFinished();
 

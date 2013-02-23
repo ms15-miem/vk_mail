@@ -4,9 +4,9 @@
 #
 #-------------------------------------------------
 
-QT       += core gui
+QT       += core
 
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+#greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 TARGET = gmail2vk
 TEMPLATE = app
@@ -29,7 +29,7 @@ HEADERS  += \
 FORMS    +=
 
 
-QT += network webkit xml
+QT += network xml
 
 HEADERS += \
     vkmessage.h

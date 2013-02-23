@@ -1,5 +1,7 @@
 #include "gmail.h"
 
+#include <iostream>
+
 GMail::GMail(QString _clientSecret, QString _redirectUri, QString _clientId,
              QString _settingsGroup, QObject *parent) :
     OAuth(_clientId, _settingsGroup, parent),
@@ -102,13 +104,23 @@ void GMail::getAuthorizationCode()
 {
     QUrl url("https://accounts.google.com/o/oauth2/auth?response_type=code&client_id=" + client_id + "&redirect_uri=" + redirect_uri + "&scope=https://mail.google.com/mail/feed/atom/");
 
-    webView = new QWebView;
+    //    webView = new QWebView;
 
-    webView->load(url);
+    //    webView->load(url);
 
-    QObject::connect(webView, SIGNAL(titleChanged(QString)), SLOT(slotTitleChanged(QString)));
+    //    QObject::connect(webView, SIGNAL(titleChanged(QString)), SLOT(slotTitleChanged(QString)));
 
-    webView->show();
+    std::cout << "GMail::getAuthorizationCode() - " << url.toString().toStdString() << std::endl;
+
+    std::string authCode;
+
+    std::cout << "Authorization code = "; std::cin >> authCode;
+
+    authorization_code = authCode.c_str();
+
+    emit receivedAuthorizationCode();
+
+    //    webView->show();
 }
 
 void GMail::slotGetRefreshAcceptTokens()
@@ -134,23 +146,23 @@ void GMail::slotStartCheckCycle()
 }
 
 
-void GMail::slotTitleChanged(QString title)
-{
-    if (title.startsWith("Success code=")) {
-        authorization_code = QString(title.toStdString().substr(13).c_str());
-        qDebug() << "gmail: authorization_code = " << authorization_code;
+//void GMail::slotTitleChanged(QString title)
+//{
+//    if (title.startsWith("Success code=")) {
+//        authorization_code = QString(title.toStdString().substr(13).c_str());
+//        qDebug() << "gmail: authorization_code = " << authorization_code;
 
-        emit receivedAuthorizationCode();
+//        emit receivedAuthorizationCode();
 
-        if (webView) {
-            webView->hide();
-            webView->deleteLater();
-            webView = 0;
-        }
-        QApplication::instance()->processEvents();
+//        if (webView) {
+//            webView->hide();
+//            webView->deleteLater();
+//            webView = 0;
+//        }
+//        QApplication::instance()->processEvents();
 
-    }
-}
+//    }
+//}
 
 void GMail::slotFinished(QNetworkReply *reply)
 {

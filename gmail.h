@@ -51,7 +51,7 @@ signals:
 
 protected slots:
     void slotFinished(QNetworkReply *reply);
-    void slotTitleChanged(QString title);
+//    void slotTitleChanged(QString title);
     // считается, что authorization code уже получен
     void slotGetRefreshAcceptTokens();
     // при условии, что refresh_token уже есть

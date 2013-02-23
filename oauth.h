@@ -17,7 +17,7 @@ class OAuth : public QObject
     Q_OBJECT
 
 protected:
-    QWebView *webView;
+//    QWebView *webView;
     QString access_token;
     QNetworkAccessManager *netManager;
     bool keepAuth;

@@ -4,6 +4,8 @@
 #include <QTimer>
 #include "vk.h"
 
+#include <iostream>
+
 Vk::Vk(QString _clientId, QString _settingsGroup, QObject *parent) :
     OAuth(_clientId, _settingsGroup, parent)
 {
@@ -19,8 +21,6 @@ Vk::Vk(QString _clientId, QString _settingsGroup, QObject *parent) :
 
 Vk::~Vk()
 {
-    delete webView;
-
 }
 
 void Vk::connect()
@@ -51,13 +51,25 @@ void Vk::slotGetAccessToken()
 {
     QUrl url("http://api.vk.com/oauth/authorize?client_id=" + client_id + "&redirect_uri=http://api.vk.com/blank.html&scope=notify,friends,photos,audio,video,docs,notes,pages,wall,groups,messages,ads,offline&display=page&response_type=token");
 
-    webView = new QWebView;
+    //    webView = new QWebView;
 
-    webView->load(url);
+    //    webView->load(url);
 
-    QObject::connect(webView, SIGNAL(urlChanged(QUrl)), SLOT(slotUrlChanged(QUrl)));
+    //    QObject::connect(webView, SIGNAL(urlChanged(QUrl)), SLOT(slotUrlChanged(QUrl)));
 
-    webView->show();
+    //    webView->show();
+
+    std::cout << "Vk::slotGetAccessToken() - " << url.toString().toStdString() << std::endl;
+
+    std::string accessToken;
+
+    std::cout << "Access token = "; std::cin >> accessToken;
+
+    access_token = accessToken.c_str();
+
+    emit receivedAccessToken();
+    saveAuthData();
+    emit setReady(true);
 }
 
 void Vk::slotMessagesRequestFinished()
@@ -99,26 +111,26 @@ void Vk::loadAuthData()
     access_token = cfg->value("access_token").toString();
 }
 
-void Vk::slotUrlChanged(const QUrl &_url)
-{
-    QUrl url = _url.toString().replace('#', '?');
+//void Vk::slotUrlChanged(const QUrl &_url)
+//{
+//    QUrl url = _url.toString().replace('#', '?');
 
-    if (url.hasQueryItem("access_token")) {
-        access_token = url.queryItemValue("access_token");
-        qDebug() << access_token;
+//    if (url.hasQueryItem("access_token")) {
+//        access_token = url.queryItemValue("access_token");
+//        qDebug() << access_token;
 
-        if (webView) {
-            webView->hide();
-            webView->deleteLater();
-            webView = 0;
-        }
-        QApplication::instance()->processEvents();
+//        if (webView) {
+//            webView->hide();
+//            webView->deleteLater();
+//            webView = 0;
+//        }
+//        QApplication::instance()->processEvents();
 
-        emit receivedAccessToken();
-        saveAuthData();
-        emit setReady(true);
-    }
-}
+//        emit receivedAccessToken();
+//        saveAuthData();
+//        emit setReady(true);
+//    }
+//}
 
 void Vk::slotPost(Message *msg)
 {
@@ -145,7 +157,7 @@ void Vk::slotPost(Message *msg)
 void Vk::slotStartCheckCycle()
 {
     refreshTimer->start(2000);
-//    refreshTimer->start(checkIntervalMinutes*60000);
+    //    refreshTimer->start(checkIntervalMinutes*60000);
 }
 
 void Vk::getMessages()

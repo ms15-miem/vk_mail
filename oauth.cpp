@@ -1,7 +1,7 @@
 #include "oauth.h"
 
 OAuth::OAuth(QString _clientId, QString _settingsGroup, QObject *parent) :
-    QObject(parent), webView(0), keepAuth(false),
+    QObject(parent),/* webView(0),*/ keepAuth(false),
     settingsGroup(_settingsGroup), client_id(_clientId)
 {
     cfg = new QSettings(QApplication::applicationName()+".ini",QSettings::IniFormat);
@@ -14,6 +14,7 @@ OAuth::OAuth(QString _clientId, QString _settingsGroup, QObject *parent) :
 
 OAuth::~OAuth()
 {
+//    delete webView;
 }
 
 void OAuth::connect()
