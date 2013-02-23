@@ -8,9 +8,9 @@
 #include <QSettings>
 #include <QNetworkReply>
 #include <QDebug>
-#include "message.h"
 #include <QApplication>
 #include <QTextCodec>
+#include "message.h"
 
 class OAuth : public QObject
 {

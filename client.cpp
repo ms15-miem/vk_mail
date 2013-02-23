@@ -13,7 +13,7 @@ Client::Client(QObject *parent) :
 
     connect(vk, SIGNAL(setReady(bool)), SLOT(slotWork(bool)));
     connect(gmail, SIGNAL(setReady(bool)), SLOT(slotWork(bool)));
-    connect(gmail, SIGNAL(unreadedMessage(Message)), vk, SLOT(slotPost(Message)));
+    connect(gmail, SIGNAL(unreadedMessage(Message*)), vk, SLOT(slotPost(Message*)));
     vk->connect();
     gmail->connect();
 
@@ -39,7 +39,7 @@ void Client::slotWork(bool ready)
     }
 }
 
-void Client::testSlot(Message *msg)
+void Client::testSlot(Message* msg)
 {
     qDebug()<<"text"<<msg->getText();
 }

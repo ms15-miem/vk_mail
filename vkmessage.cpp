@@ -28,8 +28,7 @@ qint32 VkMessage::getId()
     return authorId;
 }
 
-VkMessage::VkMessage(QString authorId, QString text, QString date)
-    :Message(QDateTime::fromTime_t(date.toInt()).toString(), "", text)
+VkMessage::VkMessage(QString authorId, QString text, QString date):Message(QDateTime::fromTime_t(date.toInt()).toString(), "", text)
 {
     this->authorId = authorId.toInt();
 }

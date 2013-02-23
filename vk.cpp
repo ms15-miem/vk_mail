@@ -14,7 +14,7 @@ Vk::Vk(QString _clientId, QString _settingsGroup, QObject *parent) :
     offset = 0;
     refreshTimer = new QTimer(this);
     checkIntervalMinutes = 1;
-    QObject::connect(refreshTimer, SIGNAL(timeout()), this, SLOT(slotGetMessages()));
+    QObject::connect(refreshTimer, SIGNAL(timeout()), this, SLOT(slotCheckMessages()));
 }
 
 Vk::~Vk()
@@ -64,63 +64,26 @@ void Vk::slotMessagesRequestFinished()
 {
     QNetworkReply *reply = qobject_cast<QNetworkReply*>(sender());
     QString s = QString::fromUtf8(reply->readAll().data());
-  //  qDebug()<<s;
     QDomDocument doc;
     doc.setContent(s);
-    QDomElement node = doc.documentElement().firstChildElement();
 
-    bool ok = true;
+    QHash<qint32, QString> names = parseUsers(doc).unite(parseGroups(doc));
+
     bool fin = false;
-    bool first = false;
-    qint32 count = node.text().toInt(&ok);
-    if(count == 0)
-        fin = true;
-    if (offset == 0)
-        first = true;
-
-    for(qint32 i = 0; i<count; i++)
-    {
-        node = node.nextSiblingElement();
-        QString id = node.firstChildElement("from_id").text();
-        QString text = node.firstChildElement("text").text();
-        QString date = node.firstChildElement("date").text();
-        qint32 msgId = node.firstChildElement("id").text().toInt();
-        qint32 intId = id.toInt();
-        if(first)
-        {
-            nextLastId = msgId;
-            first = false;
-            nextLastDate = date.toInt();
-        }
-        if (msgId<=lastId || date.toInt() < lastDate)
-        {
-            fin = true;
-            break;
-        }
-        VkMessage *msg = new VkMessage(id,text,date);
-        pendingMessages<<msg;
-
-        if(intId >= 0 && !uidsToRequest.contains(intId))
-            uidsToRequest<<intId;
-        else if (intId<0 && !gidsToRequest.contains(intId))
-            gidsToRequest<<-intId;
-
-    }
+    QList<VkMessage*> messages = parseMessages(doc, names, &fin);
+    pendingMessages.append(messages);
     if(fin)
     {
         lastId = nextLastId;
         lastDate = nextLastDate;
         offset = 0;
-
-        requestGroups(gidsToRequest);
-        requestUsers(uidsToRequest);
+        returnMessages();
     }
     else
     {
         offset += 100;
-        slotGetMessages();
+        getMessages();
     }
-
 }
 
 
@@ -156,7 +119,7 @@ void Vk::slotUrlChanged(const QUrl &_url)
     }
 }
 
-void Vk::slotPost(const Message &msg)
+void Vk::slotPost(const Message *msg)
 {
     if (access_token.isNull()) return;
 
@@ -165,7 +128,7 @@ void Vk::slotPost(const Message &msg)
 
     url_msg.addQueryItem("owner_id", "-49374915");
 
-    QString message = msg.getText();
+    QString message = msg->getText();
 
     url_msg.addEncodedQueryItem("message", QUrl::toPercentEncoding(message));
 
@@ -183,170 +146,150 @@ void Vk::slotStartCheckCycle()
 //    refreshTimer->start(checkIntervalMinutes*60000);
 }
 
-void Vk::slotGetMessages()
+void Vk::getMessages()
 {
     if (access_token.isNull())
         return;
 
     QUrl url_msg("https://api.vkontakte.ru/method/wall.get.xml");
     url_msg.addQueryItem("owner_id", "-49374915");
-    if (offset >0)
+    if (offset > 0)
     {
         url_msg.addQueryItem("offset", QString::number(offset));
     }
+    url_msg.addQueryItem("extended","1");
     url_msg.addQueryItem("access_token", access_token);
 
     QNetworkRequest req(url_msg);
     QNetworkReply *reply = netManager->get(req);
     QObject::connect(reply, SIGNAL(finished()), this, SLOT(slotMessagesRequestFinished()));
-    if(reply->isFinished())
+}
+
+void Vk::returnMessages()
+{
+    qSort(pendingMessages.begin(), pendingMessages.end(), lessThanByDate);
+    QList<VkMessage*>::Iterator msg;
+    for(msg = pendingMessages.begin(); msg != pendingMessages.end(); ++msg)
     {
-        qDebug()<< reply->readAll();
+        emit unreadedMessage((*msg));
     }
+    pendingMessages.clear();
 }
 
-
-void Vk::requestUsers(QList<qint32> uids)
+void Vk::slotCheckMessages()
 {
-    if (uids.isEmpty())
+    if (access_token.isNull())
         return;
-    qSort(uids);
-    QString uidsString;
-    QTextStream stream(&uidsString);
-    QList<qint32>::iterator i = uids.begin();
-    stream<< *i;
-    for(++i; i != uids.end(); ++i)
-            stream<<","<<*i;
 
-    QUrl url_msg("https://api.vkontakte.ru/method/users.get.xml");
-    url_msg.addQueryItem("uids", uidsString);
-    url_msg.addQueryItem("fields","first_name, last_name, nickname");
+    QUrl url_msg("https://api.vkontakte.ru/method/wall.get.xml");
+    url_msg.addQueryItem("owner_id", "-49374915");
+    url_msg.addQueryItem("count","1");
     url_msg.addQueryItem("access_token", access_token);
+
     QNetworkRequest req(url_msg);
-    QNetworkReply *rep = netManager->get(req);
-    QObject::connect(rep, SIGNAL(finished()), this, SLOT(slotUserRequestFinished()));
-    uidsToRequest.clear();
-
-
+    QNetworkReply *reply = netManager->get(req);
+    QObject::connect(reply, SIGNAL(finished()), this, SLOT(slotCheckRequestFinished()));
 }
 
-void Vk::requestGroups(QList<qint32> gids)
-{
-    if (gids.isEmpty())
-        return;
-    qSort(gids);
-    QString gidsString;
-    QTextStream stream(&gidsString);
-    QList<qint32>::iterator i = gids.begin();
-    stream<< *i;
-    for(++i; i != gids.end(); ++i)
-            stream<<","<<*i;
-
-
-    QUrl url_msg("https://api.vkontakte.ru/method/groups.getById.xml");
-    url_msg.addQueryItem("gids", gidsString);
-    url_msg.addQueryItem("access_token", access_token);
-    QNetworkRequest req(url_msg);
-    QNetworkReply *rep = netManager->get(req);
-    QObject::connect(rep, SIGNAL(finished()), this, SLOT(slotGroupRequestFinished()));
-    gidsToRequest.clear();
-
-}
-
-void Vk::slotUserRequestFinished()
+void Vk::slotCheckRequestFinished()
 {
     QNetworkReply *reply = qobject_cast<QNetworkReply*>(sender());
     QString s = QString::fromUtf8(reply->readAll().data());
     QDomDocument doc;
     doc.setContent(s);
-    QDomElement node = doc.documentElement().firstChildElement("user");
+    QDomElement node = doc.documentElement().firstChildElement("count");
 
-    qSort(pendingMessages.begin(), pendingMessages.end(), lessThanById);
-    QList<VkMessage*> messages = pendingMessages;
-    pendingMessages.clear();
-    QList<VkMessage*> messagesToSend;
-    QList<VkMessage*>::Iterator msg = messages.begin();
-    qint32 id;
-    id = node.firstChildElement("uid").text().toInt();
-    while(!node.isNull() && msg != messages.end())
+    qint32 count = node.text().toInt();
+    if(count == 0)
+        return;
+    node = node.nextSiblingElement("post");
+    QString date = node.firstChildElement("date").text();
+    qint32 msgId = node.firstChildElement("id").text().toInt();
+    if(msgId > lastId && date.toInt() >= lastDate)
     {
-        if((*msg)->getId() < id)
-        {
-            pendingMessages<<*msg;
-            ++msg;
-
-        }
-        else if((*msg)->getId() == id)
-        {
-            QString name;
-            name += node.firstChildElement("first_name").text() + " ";
-            QDomElement nickNode = node.firstChildElement("nickname");
-            if(!nickNode.isNull())
-                name += nickNode.text() + " ";
-            name += node.firstChildElement("last_name").text();
-            (*msg)->setAuthor(name);
-            messagesToSend<<*msg;
-            ++msg;
-        }
-        else
-        {
-            node = node.nextSiblingElement("user");
-            if (!node.isNull())
-                id = node.firstChildElement("uid").text().toInt();
-
-        }
-    }
-
-    qSort(messagesToSend.begin(), messagesToSend.end(), lessThanByDate);
-    for(msg = messagesToSend.begin(); msg != messagesToSend.end(); ++msg)
-    {
-        emit unreadedMessage((*msg));
+        nextLastId = msgId;
+        nextLastDate = date.toInt();
+        getMessages();
     }
 
 }
 
-void Vk::slotGroupRequestFinished()
+
+
+QList<VkMessage *> Vk::parseMessages(QDomDocument &xml, QHash<qint32, QString> &names, bool* fin)
 {
-    QNetworkReply *reply = qobject_cast<QNetworkReply*>(sender());
-    QString s = QString::fromUtf8(reply->readAll().data());
-    QDomDocument doc;
-    doc.setContent(s);
-    QDomElement node = doc.documentElement().firstChildElement();
+    QList<VkMessage *> result;
 
-    qSort(pendingMessages.begin(), pendingMessages.end(), lessThanById);
-    QList<VkMessage*> messages = pendingMessages;
-    pendingMessages.clear();
-    QList<VkMessage*> messagesToSend;
-    QList<VkMessage*>::Iterator msg = messages.begin();
-    qint32 id;
-    id = node.firstChildElement("gid").text().toInt();
-    while(!node.isNull() && msg != messages.end())
+    QDomElement node = xml.documentElement().firstChildElement("wall");
+
+
+    node = node.firstChildElement("count");
+    qint32 count = node.text().toInt();
+    if(count == 0)
     {
-        if(-(*msg)->getId() < id)
-        {
-            pendingMessages<<*msg;
-            ++msg;
-
-        }
-        else if(-(*msg)->getId() == id)
-        {
-            (*msg)->setAuthor(node.firstChildElement("name").text());
-            messagesToSend<<*msg;
-            ++msg;
-        }
-        else
-        {
-            node = node.nextSiblingElement("group");
-            if (!node.isNull())
-                id = node.firstChildElement("gid").text().toInt();
-
-        }
+        *fin = true;
+        return result;
     }
 
-    qSort(messagesToSend.begin(), messagesToSend.end(), lessThanByDate);
-    for(msg = messagesToSend.begin(); msg != messagesToSend.end(); ++msg)
+    for(qint32 i = 0; i<count; i++)
     {
-        emit unreadedMessage((*msg));
+        node = node.nextSiblingElement("post");
+        QString id = node.firstChildElement("from_id").text();
+        QString text = node.firstChildElement("text").text();
+        QString date = node.firstChildElement("date").text();
+        qint32 msgId = node.firstChildElement("id").text().toInt();
+        qint32 intId = id.toInt();
+        if (msgId<=lastId || date.toInt() < lastDate)
+        {
+            *fin = true;
+            break;
+        }
+        VkMessage *msg = new VkMessage(id,text,date);
+        if (names.contains(intId))
+            msg->setAuthor(names.value(intId));
+        result<<msg;
     }
-
+    return result;
 }
+
+QHash<qint32, QString> Vk::parseUsers(QDomDocument &xml)
+{
+    qDebug()<<xml.toString();
+    QHash<qint32, QString> result;
+
+    QDomElement node = xml.documentElement().firstChildElement("profiles");
+    if(node.isNull())
+        return result;
+
+    node = node.firstChildElement("user");
+    while(!node.isNull())
+    {
+        qint32 id = node.firstChildElement("uid").text().toInt();
+        QString name;
+        name += node.firstChildElement("first_name").text() + " ";
+        name += node.firstChildElement("last_name").text();
+        result.insert(id, name);
+        node = node.nextSiblingElement("user");
+    }
+    return result;
+}
+
+QHash<qint32, QString> Vk::parseGroups(QDomDocument &xml)
+{
+    QHash<qint32, QString> result;
+
+    QDomElement node = xml.documentElement().firstChildElement("groups");
+    if(node.isNull())
+        return result;
+
+    node = node.firstChildElement("group");
+    while(!node.isNull())
+    {
+        qint32 id = node.firstChildElement("gid").text().toInt();
+        QString name = node.firstChildElement("name").text();
+        result.insert(-id, name);
+        node = node.nextSiblingElement("group");
+    }
+    return result;
+}
+

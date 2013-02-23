@@ -130,7 +130,7 @@ void GMail::slotGetRefreshAcceptTokens()
 
 void GMail::slotStartCheckCycle()
 {
-    emit unreadedMessage(Message(QString::fromUtf8("тестовое сообщение")));
+    emit unreadedMessage(new Message(QString::fromUtf8("тестовое сообщение")));
 }
 
 

@@ -1,6 +1,7 @@
 #ifndef VK_H
 #define VK_H
 
+#include <QDomDocument>
 #include "oauth.h"
 #include "vkmessage.h"
 #include "message.h"
@@ -11,8 +12,6 @@ class Vk : public OAuth
 
 private:
     QList<VkMessage*> pendingMessages;
-    QList<qint32> uidsToRequest;
-    QList<qint32> gidsToRequest;
     qint32 lastId;
     qint32 nextLastId;
     qint32 nextLastDate;
@@ -20,9 +19,11 @@ private:
     qint32 lastDate;
     qint32 offset;
     QTimer* refreshTimer;
-    void requestUsers(QList<qint32> uids);
-    void requestGroups(QList<qint32> gids);
-
+    QList<VkMessage*> parseMessages(QDomDocument& xml, QHash<qint32, QString>& names, bool* fin);
+    QHash<qint32,QString> parseUsers(QDomDocument& xml);
+    QHash<qint32,QString> parseGroups(QDomDocument& xml);
+    void getMessages();
+    void returnMessages();
 public:
     explicit Vk(QString _clientId, QString _settingsGroup, QObject *parent = 0);
     ~Vk();
@@ -40,16 +41,15 @@ signals:
 
 private slots:
     void slotUrlChanged(const QUrl &_url);
-    void slotUserRequestFinished();
-    void slotGroupRequestFinished();
-    void slotGetMessages();
+    void slotCheckMessages();
+    void slotCheckRequestFinished();
 
 protected slots:
     void slotGetAccessToken();
     void slotMessagesRequestFinished();
 
 public slots:
-    void slotPost(const Message &msg);
+    void slotPost(const Message *msg);
     void slotStartCheckCycle();
 };
 

@@ -46,7 +46,7 @@ public:
     void connect();
 
 signals:
-    void unreadedMessage(Message msg);
+    void unreadedMessage(Message* msg);
     void receivedAuthorizationCode();
 
 protected slots:
