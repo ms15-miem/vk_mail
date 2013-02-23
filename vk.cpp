@@ -119,7 +119,7 @@ void Vk::slotUrlChanged(const QUrl &_url)
     }
 }
 
-void Vk::slotPost(const Message *msg)
+void Vk::slotPost(Message *msg)
 {
     if (access_token.isNull()) return;
 
@@ -129,6 +129,7 @@ void Vk::slotPost(const Message *msg)
     url_msg.addQueryItem("owner_id", "-49374915");
 
     QString message = msg->getText();
+    msg->deleteLater();
 
     url_msg.addEncodedQueryItem("message", QUrl::toPercentEncoding(message));
 

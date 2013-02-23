@@ -49,7 +49,7 @@ protected slots:
     void slotMessagesRequestFinished();
 
 public slots:
-    void slotPost(const Message *msg);
+    void slotPost(Message *msg);
     void slotStartCheckCycle();
 };
 
