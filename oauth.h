@@ -4,7 +4,7 @@
 #include <QObject>
 #include <QUrl>
 #include <QNetworkAccessManager>
-#include <QWebView>
+//#include <QWebView>
 #include <QSettings>
 #include <QNetworkReply>
 #include <QDebug>
