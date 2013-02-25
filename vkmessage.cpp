@@ -16,7 +16,7 @@ void VkMessage::addAttachments(const QList<QString> &list)
 
 QString VkMessage::getText() const
 {
-    QString result = Message::getText();
+    QString result =QString("["+from+"/vk]:"+body);
     QTextStream st(&result);
     for(int i =0; i<attachments.count();i++)
         st<<endl<<attachments.at(i);
