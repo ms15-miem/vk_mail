@@ -49,7 +49,8 @@ int Vk::getCheckInterval()
 
 void Vk::slotGetAccessToken()
 {
-    QUrl url("http://api.vk.com/oauth/authorize?client_id=" + client_id + "&redirect_uri=http://api.vk.com/blank.html&scope=notify,friends,photos,audio,video,docs,notes,pages,wall,groups,messages,ads,offline&display=page&response_type=token");
+    QString permissions = "wall,offline"; //notify,friends,photos,audio,video,docs,notes,pages,wall,groups,messages,ads,offline
+    QUrl url("http://api.vk.com/oauth/authorize?client_id=" + client_id + "&redirect_uri=http://api.vk.com/blank.html&scope="+permissions+"&display=page&response_type=token");
 
     //    webView = new QWebView;
 
@@ -139,7 +140,7 @@ void Vk::slotPost(Message *msg)
     QUrl url_msg("https://api.vkontakte.ru/method/wall.post");
     //    QUrl url_msg("https://api.vkontakte.ru/method/wall.post?owner_id=-49374915&message=check&from_group=1&access_token=" + access_token);
 
-    url_msg.addQueryItem("owner_id", "-49374915");
+    url_msg.addQueryItem("owner_id", groupId);
 
     QString message = msg->getText();
     msg->deleteLater();
@@ -166,7 +167,7 @@ void Vk::getMessages()
         return;
 
     QUrl url_msg("https://api.vkontakte.ru/method/wall.get.xml");
-    url_msg.addQueryItem("owner_id", "-49374915");
+    url_msg.addQueryItem("owner_id", groupId);
     if (offset > 0)
     {
         url_msg.addQueryItem("offset", QString::number(offset));
@@ -196,7 +197,7 @@ void Vk::slotCheckMessages()
         return;
 
     QUrl url_msg("https://api.vkontakte.ru/method/wall.get.xml");
-    url_msg.addQueryItem("owner_id", "-49374915");
+    url_msg.addQueryItem("owner_id", groupId);
     url_msg.addQueryItem("count","1");
     url_msg.addQueryItem("access_token", access_token);
 
