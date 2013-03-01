@@ -11,6 +11,7 @@ class Vk : public OAuth
     Q_OBJECT
 
 private:
+    QString groupId = "-49374915";
     QList<VkMessage*> pendingMessages;
     qint32 lastId;
     qint32 nextLastId;
