@@ -81,7 +81,7 @@ void Vk::slotMessagesRequestFinished()
 {
     QNetworkReply *reply = qobject_cast<QNetworkReply*>(sender());
     QString s = QString::fromUtf8(reply->readAll().data());
-    qDebug()<<s;
+//  qDebug()<<s;
     QDomDocument doc;
     doc.setContent(s);
 
@@ -115,7 +115,7 @@ void Vk::loadAuthData()
 {
     access_token = cfg->value("access_token").toString();
 }
-
+//is it needed?
 //void Vk::slotUrlChanged(const QUrl &_url)
 //{
 //    QUrl url = _url.toString().replace('#', '?');
@@ -215,6 +215,7 @@ void Vk::slotCheckRequestFinished()
 {
     QNetworkReply *reply = qobject_cast<QNetworkReply*>(sender());
     QString s = QString::fromUtf8(reply->readAll().data());
+//  qDebug()<<s;
     QDomDocument doc;
     doc.setContent(s);
     QDomElement node = doc.documentElement().firstChildElement("count");

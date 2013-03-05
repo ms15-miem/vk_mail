@@ -143,10 +143,10 @@ void GMail::slotGetRefreshAcceptTokens()
 
 void GMail::slotStartCheckCycle()
 {
-    emit unreadedMessage(new Message(QString::fromUtf8("тестовое сообщение")));
+//  emit unreadedMessage(new Message(QString::fromUtf8("тестовое сообщение")));
 }
 
-
+//Is it needed?
 //void GMail::slotTitleChanged(QString title)
 //{
 //    if (title.startsWith("Success code=")) {
@@ -169,7 +169,7 @@ void GMail::slotFinished(QNetworkReply *reply)
 {
     QString line = reply->readAll();
 
-    qDebug() << line;
+//    qDebug() << line;
 
     HttpAnswer ans = jsonParser(line);
 
