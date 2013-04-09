@@ -65,7 +65,7 @@
 class GMail : public QObject
 {
 public slots:
-    void slotStartCheckCycle();
+    void startCheckCycle();
 };
 
 #endif // GMAIL_H

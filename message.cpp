@@ -1,11 +1,11 @@
 #include "message.h"
 
-Message::Message(QString text):date(),from(),subj(),body(text),QObject(0)
+Message::Message(QString text): body(text)
 {
 
 }
 
-Message::Message(QString _date, QString _from, QString _text):subj(),QObject(0)
+Message::Message(QString _date, QString _from, QString _text)
 {
     date = _date;
     from = _from;

@@ -35,7 +35,7 @@ void Client::slotWork(bool ready)
 //    }
 
     if (vkReady && gmailReady) {
-        gmail->slotStartCheckCycle();
+        gmail->startCheckCycle();
     }
 }
 

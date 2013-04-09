@@ -197,6 +197,6 @@
 //}
 
 
-void GMail::slotStartCheckCycle()
+void GMail::startCheckCycle()
 {
 }
