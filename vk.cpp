@@ -6,7 +6,7 @@
 
 #include <iostream>
 
-const QString Vk::groupId = "-49374915";
+const QString Vk::groupId = "-19734305";
 
 Vk::Vk(QString _clientId, QString _settingsGroup, QObject *parent) :
     OAuth(_clientId, _settingsGroup, parent)
