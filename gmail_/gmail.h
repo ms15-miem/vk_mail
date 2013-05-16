@@ -35,14 +35,19 @@ class GMail : public QObject
 public:
     explicit GMail(QString login, QString password, QObject *parent = 0);
     void connect();
+    void setCheckInterval(int minutes);
+    int getCheckInterval();
+    void loadAuthData();
+
 private:
     void readEmails(vmime::ref<store> store);
     QString login, password;
+    int checkIntervalMinutes;
 
 signals:
     
 public slots:
-    
+    void startCheckCycle();
 };
 
 #endif // GMAIL_H

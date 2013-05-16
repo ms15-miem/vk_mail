@@ -28,6 +28,16 @@ void GMail::connect()
     readEmails(store);
 }
 
+void GMail::setCheckInterval(int minutes)
+{
+    checkIntervalMinutes = minutes;
+}
+
+int GMail::getCheckInterval()
+{
+    return checkIntervalMinutes;
+}
+
 void GMail::readEmails(vmime::ref <vmime::net::store> store)
 {
     // Open the INBOX
@@ -46,41 +56,42 @@ void GMail::readEmails(vmime::ref <vmime::net::store> store)
          it != msgs.end(); ++it) {
         // not seen
         if (((*it)->getFlags() & message::FLAG_SEEN)) {
-            //            vmime::ref <vmime::message> parsedMsg = (*it)->getParsedMessage();
-             vmime::ref< vmime::message > msg = (*it)->getParsedMessage();
-            vmime::messageParser mp(msg);
 
+            vmime::ref< vmime::message > msg = (*it)->getParsedMessage();
+            vmime::messageParser mp(msg);
 
             vmime::datetime date = mp.getDate();
 
-            string line;
-            ostringstream os;
+            {
+                ostringstream os;
+                os << "Date: " << date.getDay() << "." << date.getMonth() <<"."
+                   << date.getYear() << " "
+                   << date.getHour() << ":" << date.getMinute() << ":" << date.getSecond()
+                   << " " << date.getZone() << endl;
 
-            os << "Date: " << date.getDay() << "." << date.getMonth() <<"." << date.getYear() << " "
-                << date.getHour() << ":" << date.getMinute() << ":" << date.getSecond()
-                << " " << date.getZone() << endl;
+                out << os.str();
+            }
 
-            out << os.str();
+            out << "From: " << mp.getExpeditor().getName().getConvertedText(ch)
+                << " " << mp.getExpeditor().getEmail() << "\n";
 
-            out << "From: " << mp.getExpeditor().getName().getConvertedText(ch) << " " << mp.getExpeditor().getEmail() << "\n";
-
-//            out << "To: " << mp.getRecipients().get
+            //            out << "To: " << mp.getRecipients().get
             out << "Subject: " << mp.getSubject().getConvertedText(ch) << "\n";
 
-            std::cout << "Message has " << mp.getAttachmentCount() << " attachment(s)" << std::endl;
+            {
+                ostringstream os;
+                os << "Message has " << mp.getAttachmentCount()
+                   << " attachment(s)" << "\n";
+                out << os.str();
+            }
 
             for (int i = 0; i < mp.getAttachmentCount(); i++) {
                 vmime::ref<const vmime::attachment> att = mp.getAttachmentAt(i);
-                std::cout << "  --" << att->getType().generate() << std::endl;
+                out << "  --" << att->getType().generate() << "\n";
 
-//                std::cout << "Message has " << mp.getTextPartCount()
-//                          << " text part(s)" << std::endl;
             }
             for (int i = 0; i < mp.getTextPartCount(); i++) {
                 vmime::ref<const vmime::textPart> tp = mp.getTextPartAt(i);
-
-
-//                vmime::charset ch(vmime::charsets::UTF_8);
 
                 //text/html
                 if (tp->getType().getSubType() == vmime::mediaTypes::TEXT_HTML) {
@@ -97,30 +108,30 @@ void GMail::readEmails(vmime::ref <vmime::net::store> store)
         }
     }
 }
-    
-    
-    void myCertVerifier::verify(vmime::ref<vmime::security::cert::certificateChain> chain)
-    {
-        
-        // Obtain the subject's certificate
-        vmime::ref <vmime::security::cert::certificate> cert = chain->getAt(0);
-        
-        std::cout << std::endl;
-        std::cout << "Server sent a '" << cert->getType() << "'"
-                  << " certificate." << std::endl;
-        std::cout << "Do you want to accept this certificate? (Y/n) ";
-        std::cout.flush();
-        
-        std::string answer = "Y";
-        //    std::getline(std::cin, answer);
-        
-        if (answer.length() != 0 && (answer[0] == 'Y' || answer[0] == 'y'))
-            return; // OK, we trush the certificate
-        
-        // Don't trust this certificate
-        vmime::exceptions::certificate_verification_exception e
-                ("Don't trust this certificate");
-        throw e;
-        
-    }
-    
+
+
+void myCertVerifier::verify(vmime::ref<vmime::security::cert::certificateChain> chain)
+{
+
+    // Obtain the subject's certificate
+    vmime::ref <vmime::security::cert::certificate> cert = chain->getAt(0);
+
+    std::cout << std::endl;
+    std::cout << "Server sent a '" << cert->getType() << "'"
+              << " certificate." << std::endl;
+    std::cout << "Do you want to accept this certificate? (Y/n) ";
+    std::cout.flush();
+
+    std::string answer = "Y";
+    //    std::getline(std::cin, answer);
+
+    if (answer.length() != 0 && (answer[0] == 'Y' || answer[0] == 'y'))
+        return; // OK, we trush the certificate
+
+    // Don't trust this certificate
+    vmime::exceptions::certificate_verification_exception e
+            ("Don't trust this certificate");
+    throw e;
+
+}
+
