@@ -6,6 +6,7 @@
 
 #include <QtGlobal>
 #include <iostream>
+#include <sstream>
 
 #include <vmime/vmime.hpp>
 
@@ -25,29 +26,7 @@ using namespace std;
 class myCertVerifier : public vmime::security::cert::certificateVerifier
 {
 public:
-
-    void verify(vmime::ref<vmime::security::cert::certificateChain> chain)
-    {
-        // Obtain the subject's certificate
-        vmime::ref <vmime::security::cert::certificate> cert = chain->getAt(0);
-
-        std::cout << std::endl;
-        std::cout << "Server sent a '" << cert->getType() << "'"
-                  << " certificate." << std::endl;
-        std::cout << "Do you want to accept this certificate? (Y/n) ";
-        std::cout.flush();
-
-        std::string answer;
-        std::getline(std::cin, answer);
-
-        if (answer.length() != 0 && (answer[0] == 'Y' || answer[0] == 'y'))
-            return; // OK, we trush the certificate
-
-        // Don't trust this certificate
-        vmime::exceptions::certificate_verification_exception e
-                ("Don't trust this certificate");
-        throw e;
-    }
+    void verify(vmime::ref<vmime::security::cert::certificateChain> chain);
 };
 
 class GMail : public QObject
