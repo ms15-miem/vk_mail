@@ -33,7 +33,7 @@ bool lessThanById(VkMessage* m1, VkMessage* m2)
 
 bool lessThanByDate(VkMessage* m1, VkMessage* m2)
 {
-    return m1->date < m2->date;
+    return m1->dateTime < m2->dateTime;
 }
 
 
@@ -42,7 +42,8 @@ qint32 VkMessage::getId()
     return authorId;
 }
 
-VkMessage::VkMessage(QString authorId, QString text, QString date):Message(QDateTime::fromTime_t(date.toInt()).toString(), "", text)
+VkMessage::VkMessage(QString authorId, QString text, QDateTime dateTime)
+    :Message(dateTime, authorId, "", text)
 {
     this->authorId = authorId.toInt();
 }

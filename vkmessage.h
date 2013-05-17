@@ -17,7 +17,7 @@ private:
     friend bool lessThanByDate(VkMessage* m1, VkMessage* m2);
 public:
     qint32 getId();
-    VkMessage(QString authorId, QString text, QString date);
+    VkMessage(QString authorId, QString text, QDateTime dateTime);
     void setAuthor(QString name);
     void addAttachments(const QList<QString> &list);
     QString getText() const;

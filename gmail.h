@@ -1,71 +1,65 @@
 #ifndef GMAIL_H
 #define GMAIL_H
 
-#include "oauth.h"
+#include <QObject>
+#include <QDebug>
+
+#include <QtGlobal>
+#include <iostream>
+#include <sstream>
+#include "settingssaver.h"
 #include <QTimer>
-#include <QStringList>
+#include "gmailmessage.h"
+#include <QThread>
 
-//class GMail : public OAuth
-//{
-//    Q_OBJECT
+#include <vmime/vmime.hpp>
 
-//private:
-//    // тестовые функции
-//    void test();
+#ifdef Q_OS_WIN32
+#include <vmime/platforms/windows/windowsHandler.hpp>
+#endif
 
-//    struct HttpAnswer
-//    {
-//        QString access_token;
-//        QString token_type;
-//        int expires_in;
-//        QString refresh_token;
-//        HttpAnswer();
-//    };
+#ifdef Q_OS_UNIX
+#include <vmime/platforms/posix/posixHandler.hpp>
+#endif
 
-//    HttpAnswer jsonParser(QString line);
+using namespace vmime::net;
+using namespace std;
 
-//protected:
-//    QString authorization_code;
-//    // в секундах
-//    int expires_in;
-//    QString refresh_token;
-//    int checkIntervalMinutes;
-//    QString redirect_uri;
-//    QString client_secret;
-//    QTimer *expiredAcceptTokenTimer;
 
-//    void saveAuthData() const;
-//    void loadAuthData();
-//    // здесь пользователь разрешает доступ к приложению
-//    void getAuthorizationCode();
-
-//public:
-//    explicit GMail(QString _clientSecret, QString _redirectUri, QString _clientId, QString _settingsGroup, QObject *parent = 0);
-//    ~GMail();
-//    void setCheckInterval(int minutes);
-//    int getCheckInterval();
-//    void connect();
-
-//signals:
-//    void unreadedMessage(Message* msg);
-//    void receivedAuthorizationCode();
-
-//protected slots:
-//    void slotFinished(QNetworkReply *reply);
-////    void slotTitleChanged(QString title);
-//    // считается, что authorization code уже получен
-//    void slotGetRefreshAcceptTokens();
-//    // при условии, что refresh_token уже есть
-//    void slotGetAccessToken();
-
-//public slots:
-//    void slotStartCheckCycle();
-//};
-
-class GMail : public QObject
+class myCertVerifier : public vmime::security::cert::certificateVerifier
 {
+public:
+    void verify(vmime::ref<vmime::security::cert::certificateChain> chain);
+};
+
+class GMail : public QObject, public SettingsManager
+{
+    Q_OBJECT
+public:
+    explicit GMail(int checkIntervalMinutes, QObject *parent = 0);
+    void connect();
+    void setCheckInterval(int minutes);
+    int getCheckInterval();
+
+protected:
+    void saveAuthData() const;
+    void loadAuthData();
+
+private:
+    QString login, password;
+    int checkIntervalMinutes;
+    QTimer *checkEmailTimer;
+    // store of emails
+    vmime::ref <vmime::net::store> store;
+
+signals:
+    void unreadedMessage(Message *msg);
+
 public slots:
     void startCheckCycle();
+
+private slots:
+    void readEmails();
 };
 
 #endif // GMAIL_H

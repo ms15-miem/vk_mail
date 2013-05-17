@@ -1,12 +1,9 @@
 #include "oauth.h"
 
 OAuth::OAuth(QString _clientId, QString _settingsGroup, QObject *parent) :
-    QObject(parent),/* webView(0),*/ keepAuth(false),
-    settingsGroup(_settingsGroup), client_id(_clientId)
+    QObject(parent), SettingsManager(_settingsGroup), keepAuth(false),
+    client_id(_clientId)
 {
-    cfg = new QSettings(QApplication::applicationName()+".ini",QSettings::IniFormat);
-    cfg->beginGroup(settingsGroup);
-
     netManager = new QNetworkAccessManager(this);
     QObject::connect(netManager, SIGNAL(finished(QNetworkReply*)),
                      SLOT(slotFinished(QNetworkReply*)));
@@ -14,7 +11,6 @@ OAuth::OAuth(QString _clientId, QString _settingsGroup, QObject *parent) :
 
 OAuth::~OAuth()
 {
-//    delete webView;
 }
 
 void OAuth::connect()
@@ -23,15 +19,6 @@ void OAuth::connect()
         loadAuthData();
     }
 }
-
-void OAuth::saveAuthData() const
-{
-}
-
-void OAuth::loadAuthData()
-{
-}
-
 
 void OAuth::setKeepAuth(bool keep)
 {
@@ -49,7 +36,7 @@ void OAuth::slotFinished(QNetworkReply *reply)
 
 
 
-    qDebug() << "slotFinished" << reply->url();
+//    qDebug() << "slotFinished" << reply->url();
 
     reply->deleteLater();
 }

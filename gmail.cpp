@@ -1,202 +1,198 @@
 #include "gmail.h"
 
-#include <iostream>
+GMail::GMail(int checkIntervalMinutes, QObject *parent):
+    QObject(parent), SettingsManager("Gmail"), checkIntervalMinutes(checkIntervalMinutes)/*, login(login), password(password)*/
+{
+#ifdef Q_OS_UNIX
+    vmime::platform::setHandler <vmime::platforms::posix::posixHandler>();
+#endif
+#ifdef Q_OS_WIN32
+    vmime::platform::setHandler <vmime::windows::windowsHandler>();
+#endif
 
-//GMail::GMail(QString _clientSecret, QString _redirectUri, QString _clientId,
-//             QString _settingsGroup, QObject *parent) :
-//    OAuth(_clientId, _settingsGroup, parent),
-//    redirect_uri(_redirectUri), client_secret(_clientSecret)
-//{
-//    expiredAcceptTokenTimer = new QTimer(this);
-//    QObject::connect(expiredAcceptTokenTimer, SIGNAL(timeout()), SLOT(slotGetAccessToken()));
-//}
+    loadAuthData();
 
-//GMail::~GMail()
-//{
-//}
+    checkEmailTimer = new QTimer(this);
 
-//void GMail::setCheckInterval(int minutes)
-//{
-//    checkIntervalMinutes = minutes;
-//}
+    QObject::connect(checkEmailTimer, SIGNAL(timeout()), SLOT(readEmails()));
+}
 
-//int GMail::getCheckInterval()
-//{
-//    return checkIntervalMinutes;
-//}
+void GMail::connect()
+{
+    // Connect to the IMAP store
+    vmime::ref <vmime::net::session> sess = vmime::create <vmime::net::session>();
+    
+    vmime::utility::url storeURL((QString("imaps://")
+                                  + login + QString(":") + password +
+                                  QString("@imap.gmail.com:993")).toStdString().c_str());
+    
+    store = sess->getStore(storeURL);
+    store->setCertificateVerifier(vmime::create<myCertVerifier>());
+    
+    store->connect();
+}
 
-//void GMail::connect()
-//{
-//    OAuth::connect();
-//    if (refresh_token.isNull() || refresh_token == "") {
-//        QObject::connect(this, SIGNAL(receivedAuthorizationCode()),
-//                         SLOT(slotGetRefreshAcceptTokens()));
-//        getAuthorizationCode();
-//    }
-//    else {
-//        // здесь мб проверка не отменен ли доступ у приложения
+void GMail::setCheckInterval(int minutes)
+{
+    checkIntervalMinutes = minutes;
+}
 
-//        slotGetAccessToken();
-//    }
-//}
+int GMail::getCheckInterval()
+{
+    return checkIntervalMinutes;
+}
 
-//void GMail::test()
-//{
-//    emit setReady(true);
-//}
+void GMail::readEmails()
+{
+    // Open the INBOX
+    vmime::ref <vmime::net::folder> folder = store->getDefaultFolder();
+    folder->open(vmime::net::folder::MODE_READ_WRITE);
+    
+    
+    std::vector<vmime::ref<message> > msgs = folder->getMessages();
+    folder->fetchMessages(msgs, folder::FETCH_FLAGS);
 
-//GMail::HttpAnswer GMail::jsonParser(QString line)
-//{
-//    HttpAnswer ans;
+    vmime::charset ch(vmime::charsets::UTF_8);
 
-//    QStringList lines = line.split('\n');
+    for (std::vector<vmime::ref<message> >::iterator it = msgs.begin();
+         it != msgs.end(); ++it) {
+        // not seen
+        if (((*it)->getFlags() & !message::FLAG_SEEN)) {
 
-//    // куда без костылей?
-//    lines[lines.count()-2] += ',';
+            ostringstream outString;
+            vmime::utility::outputStreamAdapter out(outString);
 
-//    for(int i = 1; i < lines.count()-1; i++) {
-//        QStringList list = lines[i].split('\"');
-//        if (lines[i].startsWith("  \"access_token\"")) {
-//            ans.access_token = list[list.size()-2];
-//        }
-//        else if (lines[i].startsWith("  \"token_type\"")) {
-//            ans.token_type = list[list.size()-2];
-//        }
-//        else if (lines[i].startsWith("  \"expires_in\"")) {
-//            ans.expires_in = QString(list[list.size()-1].toStdString().substr(3, list[list.size()-1].size()-3-1).c_str()).toInt();
-//        }
-//        else if (lines[i].startsWith("  \"refresh_token\"")) {
-//            ans.refresh_token = list[list.size()-2];
-//        }
-//    }
+            vmime::ref< vmime::message > msg = (*it)->getParsedMessage();
 
-//    return ans;
-//}
+            vmime::messageParser mp(msg);
+
+            vmime::datetime date = mp.getDate();
 
 
-//void GMail::slotGetAccessToken()
-//{
-//    QUrl url("https://accounts.google.com/o/oauth2/token");
-//    QNetworkRequest request(url);
+            for (int i = 0; i < mp.getTextPartCount(); i++) {
+                vmime::ref<const vmime::textPart> tp = mp.getTextPartAt(i);
 
-//    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
+                //text/html
+                if (tp->getType().getSubType() == vmime::mediaTypes::TEXT_HTML) {
+                    vmime::ref<const vmime::htmlTextPart> htp =
+                            tp.dynamicCast<const vmime::htmlTextPart>();
 
-//    QUrl params;
-//    params.addQueryItem("refresh_token", refresh_token);
-//    params.addQueryItem("client_id", client_id);
-//    params.addQueryItem("client_secret", client_secret);
-//    params.addQueryItem("grant_type", "refresh_token");
+                    htp->getPlainText()->extract(out);
+                }
+                else {
+                    tp->getText()->extract(out);
+                }
+                out << "\n\n\n";
+            }
 
-//    netManager->post(request, params.encodedQuery());
-//}
+            QDateTime dateTime(
+                        QDate(date.getYear(), date.getMonth(), date.getDay()),
+                        QTime(date.getHour(), date.getMinute(), date.getSecond())
+                        );
 
-//void GMail::saveAuthData() const
-//{
-//    cfg->setValue("refresh_token", refresh_token);
-//}
-
-//void GMail::loadAuthData()
-//{
-//    refresh_token = cfg->value("refresh_token").toString();
-//}
-
-//void GMail::getAuthorizationCode()
-//{
-//    QUrl url("https://accounts.google.com/o/oauth2/auth?response_type=code&client_id=" + client_id + "&redirect_uri=" + redirect_uri + "&scope=https://mail.google.com/mail/feed/atom/");
-
-//    //    webView = new QWebView;
-
-//    //    webView->load(url);
-
-//    //    QObject::connect(webView, SIGNAL(titleChanged(QString)), SLOT(slotTitleChanged(QString)));
-
-//    std::cout << "GMail::getAuthorizationCode() - " << url.toString().toStdString() << std::endl;
-
-//    std::string authCode;
-
-//    std::cout << "Authorization code = "; std::cin >> authCode;
-
-//    authorization_code = authCode.c_str();
-
-//    emit receivedAuthorizationCode();
-
-//    //    webView->show();
-//}
-
-//void GMail::slotGetRefreshAcceptTokens()
-//{
-//    QUrl url("https://accounts.google.com/o/oauth2/token");
-//    QNetworkRequest request(url);
-
-//    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
-
-//    QUrl params;
-//    params.addQueryItem("code", authorization_code);
-//    params.addQueryItem("client_id", client_id);
-//    params.addQueryItem("client_secret", client_secret);
-//    params.addQueryItem("redirect_uri", redirect_uri);
-//    params.addQueryItem("grant_type", "authorization_code");
-
-//    netManager->post(request, params.encodedQuery());
-//}
-
-//void GMail::slotStartCheckCycle()
-//{
-//    emit unreadedMessage(new Message(QString::fromUtf8("тестовое сообщение")));
-//}
+            QString from = (mp.getExpeditor().getName().getConvertedText(ch)
+                            + string(" ") + mp.getExpeditor().getEmail()).c_str();
 
 
-////void GMail::slotTitleChanged(QString title)
-////{
-////    if (title.startsWith("Success code=")) {
-////        authorization_code = QString(title.toStdString().substr(13).c_str());
-////        qDebug() << "gmail: authorization_code = " << authorization_code;
+            QString text = outString.str().c_str();
 
-////        emit receivedAuthorizationCode();
+            QString subject = mp.getSubject().getConvertedText(ch).c_str();
 
-////        if (webView) {
-////            webView->hide();
-////            webView->deleteLater();
-////            webView = 0;
-////        }
-////        QApplication::instance()->processEvents();
+            emit unreadedMessage(
+                        new GMailMessage(
+                            dateTime,
+                            from,
+                            subject,
+                            text
+                            )
+                        );
 
-////    }
-////}
+            QEventLoop loop;
+            QTimer sleepTimer;
+            QObject::connect(&sleepTimer, SIGNAL(timeout()), &loop, SLOT(quit()));
 
-//void GMail::slotFinished(QNetworkReply *reply)
-//{
-//    QString line = reply->readAll();
+            sleepTimer.start(5000);
+            loop.exec();
 
-//    qDebug() << line;
+            //            {
+            //                ostringstream os;
+            //                os << "Date: " << date.getDay() << "." << date.getMonth() <<"."
+            //                   << date.getYear() << " "
+            //                   << date.getHour() << ":" << date.getMinute() << ":" << date.getSecond()
+            //                   << " " << date.getZone() << endl;
 
-//    HttpAnswer ans = jsonParser(line);
+            //                out << os.str();
+            //            }
 
-//    access_token = ans.access_token;
-//    refresh_token = ans.refresh_token;
-//    expires_in = ans.expires_in;
+            //            out << "From: " << mp.getExpeditor().getName().getConvertedText(ch)
+            //                << " " << mp.getExpeditor().getEmail() << "\n";
 
-//    expiredAcceptTokenTimer->start(expires_in*1000);
+            //            //            out << "To: " << mp.getRecipients().get
+            //            out << "Subject: " << mp.getSubject().getConvertedText(ch) << "\n";
 
-//    qDebug() << "GMail: slotFinished";
+            //            {
+            //                ostringstream os;
+            //                os << "Message has " << mp.getAttachmentCount()
+            //                   << " attachment(s)" << "\n";
+            //                out << os.str();
+            //            }
 
-//    if (!access_token.isNull() && access_token != "") {
-//        emit setReady(true);
-//    }
+            //            for (int i = 0; i < mp.getAttachmentCount(); i++) {
+            //                vmime::ref<const vmime::attachment> att = mp.getAttachmentAt(i);
+            //                out << "  --" << att->getType().generate() << "\n";
 
-//    if (!refresh_token.isNull() && refresh_token != "") {
-//        saveAuthData();
-//    }
+            //            }
 
-//    reply->deleteLater();
-//}
-
-
-//GMail::HttpAnswer::HttpAnswer():expires_in(0)
-//{
-//}
-
+            //            out << "\n";
+        }
+    }
+}
 
 void GMail::startCheckCycle()
 {
+    //    checkEmailTimer->setInterval(checkIntervalMinutes * 60000);
+    //    checkEmailTimer->setInterval(2000);
+    checkEmailTimer->start(2000);
+}
+
+void myCertVerifier::verify(vmime::ref<vmime::security::cert::certificateChain> chain)
+{
+
+    // Obtain the subject's certificate
+    vmime::ref <vmime::security::cert::certificate> cert = chain->getAt(0);
+
+    std::cout << std::endl;
+    std::cout << "Server sent a '" << cert->getType() << "'"
+              << " certificate." << std::endl;
+    std::cout << "Do you want to accept this certificate? (Y/n) ";
+    std::cout.flush();
+
+    std::string answer = "Y";
+    //    std::getline(std::cin, answer);
+
+    if (answer.length() != 0 && (answer[0] == 'Y' || answer[0] == 'y'))
+        return; // OK, we trush the certificate
+
+    // Don't trust this certificate
+    vmime::exceptions::certificate_verification_exception e
+            ("Don't trust this certificate");
+    throw e;
+
+}
+
+
+void GMail::saveAuthData() const
+{
+}
+
+void GMail::loadAuthData()
+{
+    login = cfg->value("login").toString();
+    password = cfg->value("password").toString();
+
+    if (login.isEmpty() || password.isEmpty()) {
+        cfg->setValue("login", "user");
+        cfg->setValue("password", "qwerty");
+    }
+    cfg->sync();
 }
