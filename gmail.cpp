@@ -57,7 +57,7 @@ void GMail::readEmails()
     for (std::vector<vmime::ref<message> >::iterator it = msgs.begin();
          it != msgs.end(); ++it) {
         // not seen
-        if (((*it)->getFlags() & !message::FLAG_SEEN)) {
+        if (!((*it)->getFlags() & message::FLAG_SEEN)) {
 
             ostringstream outString;
             vmime::utility::outputStreamAdapter out(outString);
