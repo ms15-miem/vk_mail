@@ -21,7 +21,7 @@ QString VkMessage::getText() const
     for(int i =0; i<attachments.count();i++)
         st<<endl<<attachments.at(i);
 
-    result.replace("<br><br>", "\n");
+    result.replace("<br>", "\n");
 
     return result;
 }
