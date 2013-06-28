@@ -27,7 +27,7 @@ private:
     void getMessages();
     void returnMessages();
 public:
-    explicit Vk(QString _clientId, QString _settingsGroup, QObject *parent = 0);
+    explicit Vk(int checkIntervalMinutes, QString _clientId, QObject *parent = 0);
     ~Vk();
     void connect();
     void setCheckInterval(int minutes);
@@ -42,7 +42,6 @@ signals:
     void unreadedMessage(Message* msg);
 
 private slots:
-//    void slotUrlChanged(const QUrl &_url);
     void slotCheckMessages();
     void slotCheckRequestFinished();
 

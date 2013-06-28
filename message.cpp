@@ -1,21 +1,18 @@
 #include "message.h"
 
-Message::Message(QString text):date(),from(),subj(),body(text),QObject(0)
+Message::Message(QDateTime _date, QString _from, QString _subj, QString _body, QObject *pobj)
+    :QObject(pobj)
 {
-
-}
-
-Message::Message(QString _date, QString _from, QString _text):subj(),QObject(0)
-{
-    date = _date;
+    dateTime = _date;
     from = _from;
-    body = _text;
+    subj = _subj;
+    body = _body;
 }
 
 QString Message::getText() const
 {
     QString ENDL("\n");
-    return  date+ENDL+
+    return  dateTime.toString()+ENDL+
             QString("New message from ")+from+ENDL+
             QString("Subject:")+subj+ENDL+
             body;
@@ -25,4 +22,9 @@ QString Message::getAttachments() const
 {
 //TODO
     return QString("\nAttachments:\n");
+}
+
+
+Message::Message()
+{
 }

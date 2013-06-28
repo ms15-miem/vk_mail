@@ -17,14 +17,18 @@ SOURCES += main.cpp \
     oauth.cpp \
     gmail.cpp \
     vk.cpp \
-    message.cpp
+    message.cpp \
+    gmailmessage.cpp \
+    settingssaver.cpp
 
 HEADERS  += \
     client.h \
     oauth.h \
     gmail.h \
     vk.h \
-    message.h
+    message.h \
+    gmailmessage.h \
+    settingssaver.h
 
 FORMS    +=
 
@@ -37,3 +41,6 @@ HEADERS += \
 SOURCES += \
     vkmessage.cpp
 
+LIBS += -lvmime
+
+CONFIG += console

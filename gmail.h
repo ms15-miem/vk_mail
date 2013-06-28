@@ -1,64 +1,65 @@
 #ifndef GMAIL_H
 #define GMAIL_H
 
-#include "oauth.h"
-#include <QTimer>
+#include <QObject>
+#include <QDebug>
 
-class GMail : public OAuth
+#include <QtGlobal>
+#include <iostream>
+#include <sstream>
+#include "settingssaver.h"
+#include <QTimer>
+#include "gmailmessage.h"
+#include <QThread>
+
+#include <vmime/vmime.hpp>
+
+#ifdef Q_OS_WIN32
+#include <vmime/platforms/windows/windowsHandler.hpp>
+#endif
+
+#ifdef Q_OS_UNIX
+#include <vmime/platforms/posix/posixHandler.hpp>
+#endif
+
+using namespace vmime::net;
+using namespace std;
+
+
+class myCertVerifier : public vmime::security::cert::certificateVerifier
+{
+public:
+    void verify(vmime::ref<vmime::security::cert::certificateChain> chain);
+};
+
+class GMail : public QObject, public SettingsManager
 {
     Q_OBJECT
-
-private:
-    // тестовые функции
-    void test();
-
-    struct HttpAnswer
-    {
-        QString access_token;
-        QString token_type;
-        int expires_in;
-        QString refresh_token;
-        HttpAnswer();
-    };
-
-    HttpAnswer jsonParser(QString line);
+public:
+    explicit GMail(int checkIntervalMsec, QObject *parent = 0);
+    void connect();
+    void setCheckInterval(int msec);
+    int getCheckInterval();
 
 protected:
-    QString authorization_code;
-    // в секундах
-    int expires_in;
-    QString refresh_token;
-    int checkIntervalMinutes;
-    QString redirect_uri;
-    QString client_secret;
-    QTimer *expiredAcceptTokenTimer;
-
     void saveAuthData() const;
     void loadAuthData();
-    // здесь пользователь разрешает доступ к приложению
-    void getAuthorizationCode();
 
-public:
-    explicit GMail(QString _clientSecret, QString _redirectUri, QString _clientId, QString _settingsGroup, QObject *parent = 0);
-    ~GMail();
-    void setCheckInterval(int minutes);
-    int getCheckInterval();
-    void connect();
+private:
+    QString login, password;
+    int checkIntervalMsec;
+    QTimer *checkEmailTimer;
+    // store of emails
+    vmime::ref <vmime::net::store> store;
 
 signals:
-    void unreadedMessage(Message* msg);
-    void receivedAuthorizationCode();
-
-protected slots:
-    void slotFinished(QNetworkReply *reply);
-//    void slotTitleChanged(QString title);
-    // считается, что authorization code уже получен
-    void slotGetRefreshAcceptTokens();
-    // при условии, что refresh_token уже есть
-    void slotGetAccessToken();
+    void unreadedMessage(Message *msg);
 
 public slots:
-    void slotStartCheckCycle();
+    void startCheckCycle();
+
+private slots:
+    void readEmails();
 };
 
 #endif // GMAIL_H

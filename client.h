@@ -12,7 +12,6 @@ class Client : public QObject
     Vk *vk;
     GMail *gmail;
     bool vkReady;
-    bool gmailReady;
 
 public:
     explicit Client(QObject *parent = 0);

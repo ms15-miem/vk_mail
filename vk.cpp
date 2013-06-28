@@ -8,8 +8,8 @@
 
 const QString Vk::groupId = "-19734305";
 
-Vk::Vk(QString _clientId, QString _settingsGroup, QObject *parent) :
-    OAuth(_clientId, _settingsGroup, parent)
+Vk::Vk(int checkIntervalMinutes, QString _clientId, QObject *parent) :
+    OAuth(_clientId, "vk", parent), checkIntervalMinutes(checkIntervalMinutes)
 {
     lastId = -1;
     nextLastId = -1;
@@ -53,14 +53,6 @@ void Vk::slotGetAccessToken()
 {
     QString permissions = "wall,offline"; //notify,friends,photos,audio,video,docs,notes,pages,wall,groups,messages,ads,offline
     QUrl url("http://api.vk.com/oauth/authorize?client_id=" + client_id + "&redirect_uri=http://api.vk.com/blank.html&scope="+permissions+"&display=page&response_type=token");
-
-    //    webView = new QWebView;
-
-    //    webView->load(url);
-
-    //    QObject::connect(webView, SIGNAL(urlChanged(QUrl)), SLOT(slotUrlChanged(QUrl)));
-
-    //    webView->show();
 
     std::cout << "Vk::slotGetAccessToken() - " << url.toString().toStdString() << std::endl;
 
@@ -114,27 +106,6 @@ void Vk::loadAuthData()
     access_token = cfg->value("access_token").toString();
 }
 
-//void Vk::slotUrlChanged(const QUrl &_url)
-//{
-//    QUrl url = _url.toString().replace('#', '?');
-
-//    if (url.hasQueryItem("access_token")) {
-//        access_token = url.queryItemValue("access_token");
-//        qDebug() << access_token;
-
-//        if (webView) {
-//            webView->hide();
-//            webView->deleteLater();
-//            webView = 0;
-//        }
-//        QApplication::instance()->processEvents();
-
-//        emit receivedAccessToken();
-//        saveAuthData();
-//        emit setReady(true);
-//    }
-//}
-
 void Vk::slotPost(Message *msg)
 {
     if (access_token.isNull()) return;
@@ -159,8 +130,8 @@ void Vk::slotPost(Message *msg)
 
 void Vk::slotStartCheckCycle()
 {
-    refreshTimer->start(2000);
-    //    refreshTimer->start(checkIntervalMinutes*60000);
+//    refreshTimer->start(2000);
+    refreshTimer->start(checkIntervalMinutes*60000);
 }
 
 void Vk::getMessages()
@@ -261,7 +232,7 @@ QList<VkMessage *> Vk::parseMessages(QDomDocument &xml, QHash<qint32, QString> &
             *fin = true;
             break;
         }
-        VkMessage *msg = new VkMessage(id,text,date);
+        VkMessage *msg = new VkMessage(id,text,QDateTime::fromString(date));
         if (names.contains(intId))
             msg->setAuthor(names.value(intId));
         msg->addAttachments(parseAttachments(node));
