@@ -1,7 +1,7 @@
 #include "gmail.h"
 
-GMail::GMail(int checkIntervalMinutes, QObject *parent):
-    QObject(parent), SettingsManager("gmail"), checkIntervalMsec(checkIntervalMinutes)/*, login(login), password(password)*/
+GMail::GMail(int checkIntervalMsec, QObject *parent):
+    QObject(parent), SettingsManager("gmail"), checkIntervalMsec(checkIntervalMsec)
 {
 #ifdef Q_OS_UNIX
     vmime::platform::setHandler <vmime::platforms::posix::posixHandler>();
