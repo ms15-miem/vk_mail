@@ -1,7 +1,7 @@
 #include "gmail.h"
 
 GMail::GMail(int checkIntervalMinutes, QObject *parent):
-    QObject(parent), SettingsManager("Gmail"), checkIntervalMinutes(checkIntervalMinutes)/*, login(login), password(password)*/
+    QObject(parent), SettingsManager("gmail"), checkIntervalMsec(checkIntervalMinutes)/*, login(login), password(password)*/
 {
 #ifdef Q_OS_UNIX
     vmime::platform::setHandler <vmime::platforms::posix::posixHandler>();
@@ -32,14 +32,14 @@ void GMail::connect()
     store->connect();
 }
 
-void GMail::setCheckInterval(int minutes)
+void GMail::setCheckInterval(int msec)
 {
-    checkIntervalMinutes = minutes;
+    checkIntervalMsec = msec;
 }
 
 int GMail::getCheckInterval()
 {
-    return checkIntervalMinutes;
+    return checkIntervalMsec;
 }
 
 void GMail::readEmails()
@@ -56,8 +56,15 @@ void GMail::readEmails()
 
     for (std::vector<vmime::ref<message> >::iterator it = msgs.begin();
          it != msgs.end(); ++it) {
+
+#ifdef QT_DEBUG
+        // seen
+        if (((*it)->getFlags() & message::FLAG_SEEN)) {
+#else
         // not seen
         if (!((*it)->getFlags() & message::FLAG_SEEN)) {
+#endif
+
 
             ostringstream outString;
             vmime::utility::outputStreamAdapter out(outString);
@@ -69,7 +76,8 @@ void GMail::readEmails()
             vmime::datetime date = mp.getDate();
 
 
-            for (int i = 0; i < mp.getTextPartCount(); i++) {
+            // hz pochemu i = 1 (inache soobshenie vyvoditsya 2 raza
+            for (int i = 1; i < mp.getTextPartCount(); i++) {
                 vmime::ref<const vmime::textPart> tp = mp.getTextPartAt(i);
 
                 //text/html
@@ -82,7 +90,7 @@ void GMail::readEmails()
                 else {
                     tp->getText()->extract(out);
                 }
-                out << "\n\n\n";
+                out << "\n";
             }
 
             QDateTime dateTime(
@@ -107,12 +115,15 @@ void GMail::readEmails()
                             )
                         );
 
+
+#ifdef QT_NO_DEBUG
             QEventLoop loop;
             QTimer sleepTimer;
             QObject::connect(&sleepTimer, SIGNAL(timeout()), &loop, SLOT(quit()));
 
             sleepTimer.start(5000);
             loop.exec();
+#endif
 
             //            {
             //                ostringstream os;
@@ -150,9 +161,11 @@ void GMail::readEmails()
 
 void GMail::startCheckCycle()
 {
-    //    checkEmailTimer->setInterval(checkIntervalMinutes * 60000);
-    //    checkEmailTimer->setInterval(2000);
-    checkEmailTimer->start(2000);
+    // zachem-to nado vernutysya v QCoreApplication:exec() inache segfault
+    QTimer::singleShot(0, this, SLOT(readEmails()));
+#ifdef QT_NO_DEBUG
+    checkEmailTimer->start(checkIntervalMsec);
+#endif
 }
 
 void myCertVerifier::verify(vmime::ref<vmime::security::cert::certificateChain> chain)
@@ -164,7 +177,7 @@ void myCertVerifier::verify(vmime::ref<vmime::security::cert::certificateChain> 
     std::cout << std::endl;
     std::cout << "Server sent a '" << cert->getType() << "'"
               << " certificate." << std::endl;
-    std::cout << "Do you want to accept this certificate? (Y/n) ";
+    std::cout << "Do you want to accept this certificate? (Y/n) " << std::endl;
     std::cout.flush();
 
     std::string answer = "Y";
@@ -189,10 +202,13 @@ void GMail::loadAuthData()
 {
     login = cfg->value("login").toString();
     password = cfg->value("password").toString();
-
     if (login.isEmpty() || password.isEmpty()) {
-        cfg->setValue("login", "user");
-        cfg->setValue("password", "qwerty");
+        QTextStream(stderr) << "Put a login and a password of a gmail account to the config";
+        if (login.isEmpty()) {
+            cfg->setValue("login", "");
+        }
+        else if (password.isEmpty()) {
+            cfg->setValue("password", "");
+        }
     }
-    cfg->sync();
 }

@@ -36,9 +36,9 @@ class GMail : public QObject, public SettingsManager
 {
     Q_OBJECT
 public:
-    explicit GMail(int checkIntervalMinutes, QObject *parent = 0);
+    explicit GMail(int checkIntervalMsec, QObject *parent = 0);
     void connect();
-    void setCheckInterval(int minutes);
+    void setCheckInterval(int msec);
     int getCheckInterval();
 
 protected:
@@ -47,7 +47,7 @@ protected:
 
 private:
     QString login, password;
-    int checkIntervalMinutes;
+    int checkIntervalMsec;
     QTimer *checkEmailTimer;
     // store of emails
     vmime::ref <vmime::net::store> store;

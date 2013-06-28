@@ -42,3 +42,5 @@ SOURCES += \
     vkmessage.cpp
 
 LIBS += -lvmime
+
+CONFIG += console

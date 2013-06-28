@@ -8,8 +8,8 @@
 
 const QString Vk::groupId = "-49374915";
 
-Vk::Vk(int checkIntervalMinutes, QString _clientId, QString _settingsGroup, QObject *parent) :
-    OAuth(_clientId, _settingsGroup, parent), checkIntervalMinutes(checkIntervalMinutes)
+Vk::Vk(int checkIntervalMinutes, QString _clientId, QObject *parent) :
+    OAuth(_clientId, "vk", parent), checkIntervalMinutes(checkIntervalMinutes)
 {
     lastId = -1;
     nextLastId = -1;
