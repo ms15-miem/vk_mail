@@ -204,7 +204,7 @@ void GMail::loadAuthData()
     password = cfg->value("password").toString();
     if (login.isEmpty() || password.isEmpty()) {
         QTextStream(stderr) << "Put a login and a password of a gmail account to the config";
-        cfg->setValue("login", "");
-        cfg->setValue("password", "");
+        if(login.isEmpty()) cfg->setValue("login", "");
+        if(password.isEmpty()) cfg->setValue("password", "");
     }
 }
