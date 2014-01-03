@@ -1,7 +1,7 @@
 #include "oauth.h"
 
-OAuth::OAuth(QString _clientId, QString _settingsGroup, QObject *parent) :
-    QObject(parent), SettingsManager(_settingsGroup), keepAuth(false),
+OAuth::OAuth(QString _clientId, QString _settingsGroup, bool keepAuth, QObject *parent) :
+    QObject(parent), SettingsManager(_settingsGroup), keepAuth(keepAuth),
     client_id(_clientId)
 {
     netManager = new QNetworkAccessManager(this);

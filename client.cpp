@@ -3,7 +3,7 @@
 Client::Client(QObject *parent) :
     QObject(parent), vkReady(false)
 {
-    vk = new Vk(1, "3353341", this);
+    vk = new Vk(1, "3353341", true, this);
     gmail = new GMail(20000, this);
     vk->setKeepAuth(true);
 

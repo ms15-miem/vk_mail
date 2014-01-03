@@ -20,15 +20,15 @@ protected:
     QString access_token;
     QNetworkAccessManager *netManager;
     QString client_id;
+    virtual void loadAuthData();
 
 private:
     bool keepAuth;
 
 public:
-    explicit OAuth(QString _clientId, QString _settingsGroup, QObject *parent = 0);
-    ~OAuth()=0;
+    explicit OAuth(QString _clientId, QString _settingsGroup, bool keepAuth, QObject *parent = 0);
+    virtual ~OAuth()=0;
     void loadSettings();
-    void loadAuthData();
     void setKeepAuth(bool keep);
     bool getKeepAuth();
     bool getReady();

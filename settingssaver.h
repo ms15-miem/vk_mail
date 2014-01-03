@@ -9,13 +9,11 @@ class SettingsManager
 public:
     SettingsManager(QString settingsGroup);
     ~SettingsManager();
-
 private:
     const QString settingsGroup;
 protected:
     QSettings *cfg;
-    void saveAuthData() const;
-    void loadAuthData();
+    void loadSettings();
 };
 
 #endif // SETTINGSSAVER_H

@@ -27,7 +27,7 @@ private:
     void getMessages();
     void returnMessages();
 public:
-    explicit Vk(int checkIntervalMinutes, QString _clientId, QObject *parent = 0);
+    explicit Vk(int checkIntervalMinutes, QString _clientId, bool keepAuth, QObject *parent = 0);
     ~Vk();
     void connect();
     void setCheckInterval(int minutes);

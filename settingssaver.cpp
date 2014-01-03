@@ -12,10 +12,6 @@ SettingsManager::~SettingsManager()
     cfg->sync();
 }
 
-void SettingsManager::loadAuthData()
-{
-}
-
-void SettingsManager::saveAuthData() const
+void SettingsManager::loadSettings()
 {
 }

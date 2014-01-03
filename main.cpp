@@ -15,6 +15,13 @@ int main(int argc, char *argv[])
     a.setApplicationName("gmail2vk");
 
     Client client;
-    
-    return a.exec();
+    try
+    {
+    	a.exec();
+    }
+    catch(...)
+    {
+    	return 1;
+    }
+    return 0;
 }
