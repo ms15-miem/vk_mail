@@ -42,8 +42,8 @@ public:
     int getCheckInterval();
 
 protected:
-    void saveAuthData() const;
     void loadAuthData();
+    void loadSettings();
 
 private:
     QString login, password;
@@ -54,6 +54,7 @@ private:
 
 signals:
     void unreadedMessage(Message *msg);
+    void connected();
 
 public slots:
     void startCheckCycle();

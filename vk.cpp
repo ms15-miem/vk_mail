@@ -19,6 +19,8 @@ Vk::Vk(int checkIntervalMinutes, QString _clientId, QObject *parent) :
     refreshTimer = new QTimer(this);
     checkIntervalMinutes = 1;
     QObject::connect(refreshTimer, SIGNAL(timeout()), this, SLOT(slotCheckMessages()));
+
+    loadSettings();
 }
 
 Vk::~Vk()
@@ -27,16 +29,10 @@ Vk::~Vk()
 
 void Vk::connect()
 {
-    OAuth::connect();
-
-    // здесь мб проверка не отменен ли доступ у приложения
-
-    if (access_token.isNull() || access_token == "") {
+    if (access_token.isEmpty()) {
         slotGetAccessToken();
     }
-    else {
-        emit setReady(true);
-    }
+    emit connected();
 }
 
 void Vk::setCheckInterval(int minutes)
@@ -62,9 +58,7 @@ void Vk::slotGetAccessToken()
 
     access_token = accessToken.c_str();
 
-    emit receivedAccessToken();
     saveAuthData();
-    emit setReady(true);
 }
 
 void Vk::slotMessagesRequestFinished()
@@ -99,6 +93,7 @@ void Vk::slotMessagesRequestFinished()
 void Vk::saveAuthData() const
 {
     cfg->setValue("access_token", access_token);
+    cfg->sync();
 }
 
 void Vk::loadAuthData()
@@ -136,7 +131,7 @@ void Vk::slotStartCheckCycle()
 
 void Vk::getMessages()
 {
-    if (access_token.isNull())
+    if (access_token.isEmpty())
         return;
 
     QUrl url_msg("https://api.vkontakte.ru/method/wall.get.xml");
@@ -166,7 +161,7 @@ void Vk::returnMessages()
 
 void Vk::slotCheckMessages()
 {
-    if (access_token.isNull())
+    if (access_token.isEmpty())
         return;
 
     QUrl url_msg("https://api.vkontakte.ru/method/wall.get.xml");

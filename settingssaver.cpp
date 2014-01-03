@@ -9,7 +9,7 @@ SettingsManager::SettingsManager(QString settingsGroup)
 
 SettingsManager::~SettingsManager()
 {
-    delete cfg;
+    cfg->sync();
 }
 
 void SettingsManager::loadAuthData()

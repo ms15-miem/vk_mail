@@ -5,19 +5,23 @@ OAuth::OAuth(QString _clientId, QString _settingsGroup, QObject *parent) :
     client_id(_clientId)
 {
     netManager = new QNetworkAccessManager(this);
-    QObject::connect(netManager, SIGNAL(finished(QNetworkReply*)),
-                     SLOT(slotFinished(QNetworkReply*)));
+//    QObject::connect(netManager, SIGNAL(finished(QNetworkReply*)),
+//                    SLOT(slotFinished(QNetworkReply*)));
 }
 
 OAuth::~OAuth()
 {
 }
 
-void OAuth::connect()
+void OAuth::loadSettings()
 {
     if (keepAuth) {
         loadAuthData();
     }
+}
+
+void OAuth::loadAuthData()
+{
 }
 
 void OAuth::setKeepAuth(bool keep)

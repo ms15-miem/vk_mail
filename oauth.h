@@ -19,24 +19,25 @@ class OAuth : public QObject, public SettingsManager
 protected:
     QString access_token;
     QNetworkAccessManager *netManager;
-    bool keepAuth;
     QString client_id;
+
+private:
+    bool keepAuth;
 
 public:
     explicit OAuth(QString _clientId, QString _settingsGroup, QObject *parent = 0);
-    virtual ~OAuth()=0;
-    virtual void connect();
+    ~OAuth()=0;
+    void loadSettings();
+    void loadAuthData();
     void setKeepAuth(bool keep);
     bool getKeepAuth();
     bool getReady();
 
 signals:
-    void receivedAccessToken();
-    void setReady(bool ready);
-    
+    void connected();
+
 protected slots:
-    virtual void slotFinished(QNetworkReply *reply);
-    virtual void slotGetAccessToken()=0;
+    void slotFinished(QNetworkReply *reply);
 };
 
 

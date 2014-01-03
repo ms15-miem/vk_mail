@@ -4,31 +4,26 @@ Client::Client(QObject *parent) :
     QObject(parent), vkReady(false)
 {
     vk = new Vk(1, "3353341", this);
+    gmail = new GMail(20000, this);
     vk->setKeepAuth(true);
 
-    connect(vk, SIGNAL(setReady(bool)), SLOT(slotWork(bool)));
-
-    gmail = new GMail(20000, this);
+    connect(vk, SIGNAL(connected()), SLOT(slotWork()));
 
 #ifdef QT_DEBUG
     QObject::connect(gmail, SIGNAL(unreadedMessage(Message*)), SLOT(testSlot(Message*)));
-//            QObject::connect(gmail, SIGNAL(unreadedMessage(Message*)), vk, SLOT(slotPost(Message*)));
 #else
-        QObject::connect(gmail, SIGNAL(unreadedMessage(Message*)), vk, SLOT(slotPost(Message*)));
+    QObject::connect(gmail, SIGNAL(unreadedMessage(Message*)), vk, SLOT(slotPost(Message*)));
 #endif
-
-
     vk->connect();
-    gmail->connect();
 }
 
 Client::~Client()
 {
 }
 
-void Client::slotWork(bool ready)
+void Client::slotWork()
 {
-    vkReady = ready;
+    gmail->connect();
     gmail->startCheckCycle();
 }
 

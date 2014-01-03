@@ -10,7 +10,7 @@ GMail::GMail(int checkIntervalMsec, QObject *parent):
     vmime::platform::setHandler <vmime::windows::windowsHandler>();
 #endif
 
-    loadAuthData();
+    loadSettings();
 
     checkEmailTimer = new QTimer(this);
 
@@ -30,6 +30,7 @@ void GMail::connect()
     store->setCertificateVerifier(vmime::create<myCertVerifier>());
     
     store->connect();
+    emit connected();
 }
 
 void GMail::setCheckInterval(int msec)
@@ -193,9 +194,9 @@ void myCertVerifier::verify(vmime::ref<vmime::security::cert::certificateChain> 
 
 }
 
-
-void GMail::saveAuthData() const
+void GMail::loadSettings()
 {
+    loadAuthData();
 }
 
 void GMail::loadAuthData()
@@ -203,8 +204,9 @@ void GMail::loadAuthData()
     login = cfg->value("login").toString();
     password = cfg->value("password").toString();
     if (login.isEmpty() || password.isEmpty()) {
-        QTextStream(stderr) << "Put a login and a password of a gmail account to the config";
+        QTextStream(stderr) << "Put a login and a password of a gmail account to the config\n";
         if(login.isEmpty()) cfg->setValue("login", "");
         if(password.isEmpty()) cfg->setValue("password", "");
+	cfg->sync();
     }
 }

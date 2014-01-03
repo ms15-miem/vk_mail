@@ -20,7 +20,7 @@ public:
 signals:
 
 private slots:
-    void slotWork(bool ready);
+    void slotWork();
     void testSlot(Message* msg);
 
 public slots:
