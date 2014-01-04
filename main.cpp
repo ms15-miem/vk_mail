@@ -1,7 +1,9 @@
 #include "client.h"
-//#include <QApplication>
+
 #include <QCoreApplication>
 #include <QTextCodec>
+
+#include <exception>
 
 int main(int argc, char *argv[])
 {
@@ -18,6 +20,10 @@ int main(int argc, char *argv[])
         Client client;
         client.start();
         a.exec();
+    }
+    catch(std::exception &e)
+    {
+        qFatal(e.what());
     }
     catch(...)
     {
