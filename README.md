@@ -1,4 +1,4 @@
-## Gmail2vk
+## vk_mail
 
 ### Кросспостер с гмылоящика на стенку группы ВКонтакте.
 
@@ -10,38 +10,32 @@
 
 ###
 
-Зависимости: Qt4, vmime
+Зависимости: libqt4-dev, libvmime-dev
 
-### Запуск на локальной машине
+### Запуск
 
-*   [Скачать](https://github.com/ms15-miem/vk_mail/archive/master.zip), распаковать. Или просто 
-    > git clone https://github.com/ms15-miem/vk_mail.git
+*   git clone https://github.com/ms15-miem/vk_mail.git
 
-*   Запустить. Ввести логин и пароль от ВКонтакте.
+*   cd vk_mail && qmake-qt4 && make
 
-*   Разрешить программе действия от имени своего аккаунта.
-
-*   Готово. Программа свернётся и будет работать в фоновом режиме.
-
-### Запуск на сервере
-
+*   Запустить
 
 ### Завершение работы
 
 Для завершения работы программы выполните команду:
 
-*   Windows&nbsp;(all exemplars): taskkill /F /IM gmail2vk.exe
+*   Windows&nbsp;(all exemplars): taskkill /F /IM <exe_файл>
 
 *   Linux (all exemplars):
 
-    > killall \. gmail2vk
+    > killall \. <exe_файл>
 *   Linux (alternate)
 
-    > pkill gmail2vk
+    > pkill <exe_файл>
 *   Linux (for username)
 
-    > killall gmail2vk -u username
+    > killall <exe_файл> -u username
 
 ### Сброс авторизации
 
-Для сброса авторизации vk удалите ключ access_token в gmail2vk.ini
+Для сброса авторизации vk удалите ключ access_token в ini файле
