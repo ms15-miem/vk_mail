@@ -5,8 +5,10 @@
 #include <QUrl>
 #include <QNetworkReply>
 #include <QDebug>
+#include <QEventLoop>
 
 #include <iostream>
+#include <thread>
 
 #include "vk.h"
 #include "functions.h"
@@ -127,9 +129,17 @@ void Vk::slotPost(Message *msg)
     url_msg.addQueryItem("access_token", access_token);
 
     QNetworkRequest req(url_msg);
-    netManager->get(req);
+    QNetworkReply *reply = netManager->get(req);
 
-    functions::wait(5000);
+    QEventLoop loop;
+    QObject::connect(reply, SIGNAL(finished()), &loop, SLOT(quit()));
+    QObject::connect(reply, SIGNAL(finished()), reply, SLOT(deleteLater()));
+    // если не ждать, то во время loop будет часто вызываться slotPost
+    std::this_thread::sleep_for(std::chrono::seconds(5));
+    loop.exec();
+    qDebug() << url_msg.toString();
+    qDebug() << reply->readAll();
+    qDebug() << "\n";
 }
 
 void Vk::slotStartCheckCycle()
@@ -154,6 +164,7 @@ void Vk::getMessages()
     QNetworkRequest req(url_msg);
     QNetworkReply *reply = netManager->get(req);
     QObject::connect(reply, SIGNAL(finished()), this, SLOT(slotMessagesRequestFinished()));
+    QObject::connect(reply, SIGNAL(finished()), reply, SLOT(deleteLater()));
 }
 
 void Vk::returnMessages()
@@ -180,6 +191,7 @@ void Vk::slotCheckMessages()
     QNetworkRequest req(url_msg);
     QNetworkReply *reply = netManager->get(req);
     QObject::connect(reply, SIGNAL(finished()), this, SLOT(slotCheckRequestFinished()));
+    QObject::connect(reply, SIGNAL(finished()), reply, SLOT(deleteLater()));
 }
 
 void Vk::slotCheckRequestFinished()

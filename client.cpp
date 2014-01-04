@@ -22,11 +22,11 @@ void Client::start()
 
     connect(vk, SIGNAL(connected()), SLOT(slotWork()));
 
-#ifdef QT_DEBUG
-    QObject::connect(gmail, SIGNAL(unreadedMessage(Message*)), SLOT(testSlot(Message*)));
-#else
+//#ifdef QT_DEBUG
+//    QObject::connect(gmail, SIGNAL(unreadedMessage(Message*)), SLOT(testSlot(Message*)));
+//#else
     QObject::connect(gmail, SIGNAL(unreadedMessage(Message*)), vk, SLOT(slotPost(Message*)));
-#endif
+//#endif
     vk->connect();
 }
 
