@@ -1,5 +1,7 @@
 #include "gmailmessage.h"
 
+#include <QTextStream>
+
 GMailMessage::GMailMessage()
 {
 }

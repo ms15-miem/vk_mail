@@ -2,18 +2,21 @@
 #define SETTINGSSAVER_H
 
 #include <QSettings>
-#include <QCoreApplication>
+#include <memory>
 
 class SettingsManager
 {
 public:
     SettingsManager(QString settingsGroup);
     ~SettingsManager();
+
 private:
     const QString settingsGroup;
+
 protected:
-    QSettings *cfg;
     void loadSettings();
+    void saveSettings();
+    std::unique_ptr<QSettings> cfg;
 };
 
 #endif // SETTINGSSAVER_H

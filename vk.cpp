@@ -2,9 +2,16 @@
 #include <QQueue>
 #include <QDateTime>
 #include <QTimer>
-#include "vk.h"
+#include <QUrl>
+#include <QNetworkReply>
+#include <QDebug>
 
 #include <iostream>
+
+#include "vk.h"
+#include "functions.h"
+#include "message.h"
+#include "vkmessage.h"
 
 const QString Vk::groupId = "-49374915";
 
@@ -17,7 +24,6 @@ Vk::Vk(int checkIntervalMinutes, QString _clientId, bool keepAuth, QObject *pare
     nextLastDate = 0;
     offset = 0;
     refreshTimer = new QTimer(this);
-    checkIntervalMinutes = 1;
     QObject::connect(refreshTimer, SIGNAL(timeout()), this, SLOT(slotCheckMessages()));
 
     loadSettings();
@@ -25,6 +31,7 @@ Vk::Vk(int checkIntervalMinutes, QString _clientId, bool keepAuth, QObject *pare
 
 Vk::~Vk()
 {
+    saveSettings();
 }
 
 void Vk::connect()
@@ -57,8 +64,6 @@ void Vk::slotGetAccessToken()
     std::cout << "Access token = "; std::cin >> accessToken;
 
     access_token = accessToken.c_str();
-
-    saveAuthData();
 }
 
 void Vk::slotMessagesRequestFinished()
@@ -88,12 +93,9 @@ void Vk::slotMessagesRequestFinished()
     }
 }
 
-
-
 void Vk::saveAuthData() const
 {
     cfg->setValue("access_token", access_token);
-    cfg->sync();
 }
 
 void Vk::loadAuthData()
@@ -101,9 +103,14 @@ void Vk::loadAuthData()
     access_token = cfg->value("access_token").toString();
 }
 
+void Vk::saveSettings()
+{
+    saveAuthData();
+}
+
 void Vk::slotPost(Message *msg)
 {
-    if (access_token.isNull()) return;
+    if (access_token.isEmpty()) return;
 
     QUrl url_msg("https://api.vkontakte.ru/method/wall.post");
     //    QUrl url_msg("https://api.vkontakte.ru/method/wall.post?owner_id=-49374915&message=check&from_group=1&access_token=" + access_token);
@@ -121,11 +128,12 @@ void Vk::slotPost(Message *msg)
 
     QNetworkRequest req(url_msg);
     netManager->get(req);
+
+    functions::wait(5000);
 }
 
 void Vk::slotStartCheckCycle()
 {
-//    refreshTimer->start(2000);
     refreshTimer->start(checkIntervalMinutes*60000);
 }
 

@@ -2,7 +2,6 @@
 #define GMAILMESSAGE_H
 
 #include "message.h"
-#include <QTextStream>
 
 class GMailMessage : public Message
 {

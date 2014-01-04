@@ -1,7 +1,18 @@
 #include "gmail.h"
 
-GMail::GMail(int checkIntervalMsec, QObject *parent):
-    QObject(parent), SettingsManager("gmail"), checkIntervalMsec(checkIntervalMsec)
+#include <QTimer>
+#include <QDateTime>
+#include <QDebug>
+
+#include <iostream>
+
+#include "gmailmessage.h"
+
+using namespace vmime::net;
+using namespace std;
+
+GMail::GMail(int checkIntervalSec, QObject *parent):
+    QObject(parent), SettingsManager("gmail"), checkIntervalSec(checkIntervalSec)
 {
 #ifdef Q_OS_UNIX
     vmime::platform::setHandler <vmime::platforms::posix::posixHandler>();
@@ -10,11 +21,10 @@ GMail::GMail(int checkIntervalMsec, QObject *parent):
     vmime::platform::setHandler <vmime::windows::windowsHandler>();
 #endif
 
-    loadSettings();
-
     checkEmailTimer = new QTimer(this);
-
     QObject::connect(checkEmailTimer, SIGNAL(timeout()), SLOT(readEmails()));
+
+    loadSettings();
 }
 
 void GMail::connect()
@@ -35,12 +45,12 @@ void GMail::connect()
 
 void GMail::setCheckInterval(int msec)
 {
-    checkIntervalMsec = msec;
+    checkIntervalSec = msec;
 }
 
 int GMail::getCheckInterval()
 {
-    return checkIntervalMsec;
+    return checkIntervalSec;
 }
 
 void GMail::readEmails()
@@ -65,8 +75,6 @@ void GMail::readEmails()
         // not seen
         if (!((*it)->getFlags() & message::FLAG_SEEN)) {
 #endif
-
-
             ostringstream outString;
             vmime::utility::outputStreamAdapter out(outString);
 
@@ -115,57 +123,48 @@ void GMail::readEmails()
                             text
                             )
                         );
+            {
 
+                //            {
+                //                ostringstream os;
+                //                os << "Date: " << date.getDay() << "." << date.getMonth() <<"."
+                //                   << date.getYear() << " "
+                //                   << date.getHour() << ":" << date.getMinute() << ":" << date.getSecond()
+                //                   << " " << date.getZone() << endl;
 
-#ifdef QT_NO_DEBUG
-            QEventLoop loop;
-            QTimer sleepTimer;
-            QObject::connect(&sleepTimer, SIGNAL(timeout()), &loop, SLOT(quit()));
+                //                out << os.str();
+                //            }
 
-            sleepTimer.start(5000);
-            loop.exec();
-#endif
+                //            out << "From: " << mp.getExpeditor().getName().getConvertedText(ch)
+                //                << " " << mp.getExpeditor().getEmail() << "\n";
 
-            //            {
-            //                ostringstream os;
-            //                os << "Date: " << date.getDay() << "." << date.getMonth() <<"."
-            //                   << date.getYear() << " "
-            //                   << date.getHour() << ":" << date.getMinute() << ":" << date.getSecond()
-            //                   << " " << date.getZone() << endl;
+                //            //            out << "To: " << mp.getRecipients().get
+                //            out << "Subject: " << mp.getSubject().getConvertedText(ch) << "\n";
 
-            //                out << os.str();
-            //            }
+                //            {
+                //                ostringstream os;
+                //                os << "Message has " << mp.getAttachmentCount()
+                //                   << " attachment(s)" << "\n";
+                //                out << os.str();
+                //            }
 
-            //            out << "From: " << mp.getExpeditor().getName().getConvertedText(ch)
-            //                << " " << mp.getExpeditor().getEmail() << "\n";
+                //            for (int i = 0; i < mp.getAttachmentCount(); i++) {
+                //                vmime::ref<const vmime::attachment> att = mp.getAttachmentAt(i);
+                //                out << "  --" << att->getType().generate() << "\n";
 
-            //            //            out << "To: " << mp.getRecipients().get
-            //            out << "Subject: " << mp.getSubject().getConvertedText(ch) << "\n";
+                //            }
 
-            //            {
-            //                ostringstream os;
-            //                os << "Message has " << mp.getAttachmentCount()
-            //                   << " attachment(s)" << "\n";
-            //                out << os.str();
-            //            }
-
-            //            for (int i = 0; i < mp.getAttachmentCount(); i++) {
-            //                vmime::ref<const vmime::attachment> att = mp.getAttachmentAt(i);
-            //                out << "  --" << att->getType().generate() << "\n";
-
-            //            }
-
-            //            out << "\n";
+                //            out << "\n";
+            }
         }
     }
 }
 
 void GMail::startCheckCycle()
 {
-    // zachem-to nado vernutysya v QCoreApplication:exec() inache segfault
-    QTimer::singleShot(0, this, SLOT(readEmails()));
+    readEmails();
 #ifdef QT_NO_DEBUG
-    checkEmailTimer->start(checkIntervalMsec);
+    checkEmailTimer->start(checkIntervalSec);
 #endif
 }
 
@@ -204,9 +203,8 @@ void GMail::loadAuthData()
     login = cfg->value("login").toString();
     password = cfg->value("password").toString();
     if (login.isEmpty() || password.isEmpty()) {
-        QTextStream(stderr) << "Put a login and a password of a gmail account to the config\n";
+        qWarning() << "Put a login and a password of a gmail account to the config";
         if(login.isEmpty()) cfg->setValue("login", "");
         if(password.isEmpty()) cfg->setValue("password", "");
-	cfg->sync();
     }
 }

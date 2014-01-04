@@ -1,11 +1,24 @@
 #include "client.h"
 
+#include "vk.h"
+#include "gmail.h"
+#include "message.h"
+
+#include <QDebug>
+
 Client::Client(QObject *parent) :
-    QObject(parent), vkReady(false)
+    QObject(parent)
+{
+}
+
+Client::~Client()
+{
+}
+
+void Client::start()
 {
     vk = new Vk(1, "3353341", true, this);
-    gmail = new GMail(20000, this);
-    vk->setKeepAuth(true);
+    gmail = new GMail(20, this);
 
     connect(vk, SIGNAL(connected()), SLOT(slotWork()));
 
@@ -15,10 +28,6 @@ Client::Client(QObject *parent) :
     QObject::connect(gmail, SIGNAL(unreadedMessage(Message*)), vk, SLOT(slotPost(Message*)));
 #endif
     vk->connect();
-}
-
-Client::~Client()
-{
 }
 
 void Client::slotWork()

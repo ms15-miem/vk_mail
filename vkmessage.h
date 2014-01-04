@@ -4,8 +4,6 @@
 #include <QObject>
 #include "message.h"
 
-
-
 class VkMessage : public Message
 {
     Q_OBJECT

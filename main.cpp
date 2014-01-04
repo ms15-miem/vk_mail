@@ -10,18 +10,18 @@ int main(int argc, char *argv[])
     QTextCodec::setCodecForLocale(codec);
     QTextCodec::setCodecForCStrings(codec);
 
-    /*QApplication*/ QCoreApplication a(argc, argv);
-//    a.setQuitOnLastWindowClosed(false);
+    QCoreApplication a(argc, argv);
     a.setApplicationName("gmail2vk");
 
-    Client client;
     try
     {
-    	a.exec();
+        Client client;
+        client.start();
+        a.exec();
     }
     catch(...)
     {
-    	return 1;
+        qFatal("Exception has been caught");
     }
     return 0;
 }

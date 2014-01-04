@@ -1,10 +1,13 @@
 #ifndef VK_H
 #define VK_H
 
-#include <QDomDocument>
 #include "oauth.h"
-#include "vkmessage.h"
-#include "message.h"
+
+class QTimer;
+class QDomDocument;
+class VkMessage;
+class QDomElement;
+class Message;
 
 class Vk : public OAuth
 {
@@ -26,6 +29,12 @@ private:
     QList<QString> parseAttachments(QDomElement &e);
     void getMessages();
     void returnMessages();
+    void saveAuthData() const;
+
+protected:
+    void loadAuthData();
+    void saveSettings();
+
 public:
     explicit Vk(int checkIntervalMinutes, QString _clientId, bool keepAuth, QObject *parent = 0);
     ~Vk();
@@ -33,19 +42,12 @@ public:
     void setCheckInterval(int minutes);
     int getCheckInterval();
 
-
-protected:
-    void saveAuthData() const;
-    void loadAuthData();
-
 signals:
     void unreadedMessage(Message* msg);
 
 private slots:
     void slotCheckMessages();
     void slotCheckRequestFinished();
-
-protected slots:
     void slotGetAccessToken();
     void slotMessagesRequestFinished();
 
