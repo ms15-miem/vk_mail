@@ -2,14 +2,23 @@
 #include <QQueue>
 #include <QDateTime>
 #include <QTimer>
-#include "vk.h"
+#include <QUrl>
+#include <QNetworkReply>
+#include <QDebug>
+#include <QEventLoop>
 
 #include <iostream>
+#include <thread>
 
-const QString Vk::groupId = "-19734305";
+#include "vk.h"
+#include "functions.h"
+#include "message.h"
+#include "vkmessage.h"
 
-Vk::Vk(int checkIntervalMinutes, QString _clientId, QObject *parent) :
-    OAuth(_clientId, "vk", parent), checkIntervalMinutes(checkIntervalMinutes)
+const QString Vk::groupId = "-49374915";
+
+Vk::Vk(int checkIntervalMinutes, QString _clientId, bool keepAuth, QObject *parent) :
+    OAuth(_clientId, "vk", keepAuth, parent), checkIntervalMinutes(checkIntervalMinutes)
 {
     lastId = -1;
     nextLastId = -1;
@@ -17,26 +26,22 @@ Vk::Vk(int checkIntervalMinutes, QString _clientId, QObject *parent) :
     nextLastDate = 0;
     offset = 0;
     refreshTimer = new QTimer(this);
-    checkIntervalMinutes = 1;
     QObject::connect(refreshTimer, SIGNAL(timeout()), this, SLOT(slotCheckMessages()));
+
+    loadSettings();
 }
 
 Vk::~Vk()
 {
+    saveSettings();
 }
 
 void Vk::connect()
 {
-    OAuth::connect();
-
-    // здесь мб проверка не отменен ли доступ у приложения
-
-    if (access_token.isNull() || access_token == "") {
+    if (access_token.isEmpty()) {
         slotGetAccessToken();
     }
-    else {
-        emit setReady(true);
-    }
+    emit connected();
 }
 
 void Vk::setCheckInterval(int minutes)
@@ -61,10 +66,6 @@ void Vk::slotGetAccessToken()
     std::cout << "Access token = "; std::cin >> accessToken;
 
     access_token = accessToken.c_str();
-
-    emit receivedAccessToken();
-    saveAuthData();
-    emit setReady(true);
 }
 
 void Vk::slotMessagesRequestFinished()
@@ -94,8 +95,6 @@ void Vk::slotMessagesRequestFinished()
     }
 }
 
-
-
 void Vk::saveAuthData() const
 {
     cfg->setValue("access_token", access_token);
@@ -106,9 +105,14 @@ void Vk::loadAuthData()
     access_token = cfg->value("access_token").toString();
 }
 
+void Vk::saveSettings()
+{
+    saveAuthData();
+}
+
 void Vk::slotPost(Message *msg)
 {
-    if (access_token.isNull()) return;
+    if (access_token.isEmpty()) return;
 
     QUrl url_msg("https://api.vkontakte.ru/method/wall.post");
     //    QUrl url_msg("https://api.vkontakte.ru/method/wall.post?owner_id=-49374915&message=check&from_group=1&access_token=" + access_token);
@@ -125,18 +129,27 @@ void Vk::slotPost(Message *msg)
     url_msg.addQueryItem("access_token", access_token);
 
     QNetworkRequest req(url_msg);
-    netManager->get(req);
+    QNetworkReply *reply = netManager->get(req);
+
+    QEventLoop loop;
+    QObject::connect(reply, SIGNAL(finished()), &loop, SLOT(quit()));
+    QObject::connect(reply, SIGNAL(finished()), reply, SLOT(deleteLater()));
+    // если не ждать, то во время loop будет часто вызываться slotPost
+    std::this_thread::sleep_for(std::chrono::seconds(5));
+    loop.exec();
+    qDebug() << url_msg.toString();
+    qDebug() << reply->readAll();
+    qDebug() << "\n";
 }
 
 void Vk::slotStartCheckCycle()
 {
-//    refreshTimer->start(2000);
     refreshTimer->start(checkIntervalMinutes*60000);
 }
 
 void Vk::getMessages()
 {
-    if (access_token.isNull())
+    if (access_token.isEmpty())
         return;
 
     QUrl url_msg("https://api.vkontakte.ru/method/wall.get.xml");
@@ -151,6 +164,7 @@ void Vk::getMessages()
     QNetworkRequest req(url_msg);
     QNetworkReply *reply = netManager->get(req);
     QObject::connect(reply, SIGNAL(finished()), this, SLOT(slotMessagesRequestFinished()));
+    QObject::connect(reply, SIGNAL(finished()), reply, SLOT(deleteLater()));
 }
 
 void Vk::returnMessages()
@@ -166,7 +180,7 @@ void Vk::returnMessages()
 
 void Vk::slotCheckMessages()
 {
-    if (access_token.isNull())
+    if (access_token.isEmpty())
         return;
 
     QUrl url_msg("https://api.vkontakte.ru/method/wall.get.xml");
@@ -177,6 +191,7 @@ void Vk::slotCheckMessages()
     QNetworkRequest req(url_msg);
     QNetworkReply *reply = netManager->get(req);
     QObject::connect(reply, SIGNAL(finished()), this, SLOT(slotCheckRequestFinished()));
+    QObject::connect(reply, SIGNAL(finished()), reply, SLOT(deleteLater()));
 }
 
 void Vk::slotCheckRequestFinished()

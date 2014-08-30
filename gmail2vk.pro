@@ -19,7 +19,8 @@ SOURCES += main.cpp \
     vk.cpp \
     message.cpp \
     gmailmessage.cpp \
-    settingssaver.cpp
+    settingssaver.cpp \
+    functions.cpp
 
 HEADERS  += \
     client.h \
@@ -28,7 +29,8 @@ HEADERS  += \
     vk.h \
     message.h \
     gmailmessage.h \
-    settingssaver.h
+    settingssaver.h \
+    functions.h
 
 FORMS    +=
 
@@ -44,3 +46,5 @@ SOURCES += \
 LIBS += -lvmime
 
 CONFIG += console
+
+QMAKE_CXXFLAGS += -std=c++11

@@ -2,8 +2,10 @@
 #define CLIENT_H
 
 #include <QObject>
-#include "vk.h"
-#include "gmail.h"
+
+class Vk;
+class GMail;
+class Message;
 
 class Client : public QObject
 {
@@ -11,16 +13,16 @@ class Client : public QObject
 
     Vk *vk;
     GMail *gmail;
-    bool vkReady;
 
 public:
     explicit Client(QObject *parent = 0);
     ~Client();
+    void start();
     
 signals:
 
 private slots:
-    void slotWork(bool ready);
+    void slotWork();
     void testSlot(Message* msg);
 
 public slots:

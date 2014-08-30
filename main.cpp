@@ -1,7 +1,9 @@
 #include "client.h"
-//#include <QApplication>
+
 #include <QCoreApplication>
 #include <QTextCodec>
+
+#include <exception>
 
 int main(int argc, char *argv[])
 {
@@ -10,11 +12,22 @@ int main(int argc, char *argv[])
     QTextCodec::setCodecForLocale(codec);
     QTextCodec::setCodecForCStrings(codec);
 
-    /*QApplication*/ QCoreApplication a(argc, argv);
-//    a.setQuitOnLastWindowClosed(false);
+    QCoreApplication a(argc, argv);
     a.setApplicationName("gmail2vk");
 
-    Client client;
-    
-    return a.exec();
+    try
+    {
+        Client client;
+        client.start();
+        a.exec();
+    }
+    catch(std::exception &e)
+    {
+        qFatal(e.what());
+    }
+    catch(...)
+    {
+        qFatal("Exception has been caught");
+    }
+    return 0;
 }

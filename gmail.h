@@ -2,15 +2,8 @@
 #define GMAIL_H
 
 #include <QObject>
-#include <QDebug>
 
-#include <QtGlobal>
-#include <iostream>
-#include <sstream>
 #include "settingssaver.h"
-#include <QTimer>
-#include "gmailmessage.h"
-#include <QThread>
 
 #include <vmime/vmime.hpp>
 
@@ -22,9 +15,8 @@
 #include <vmime/platforms/posix/posixHandler.hpp>
 #endif
 
-using namespace vmime::net;
-using namespace std;
-
+class QTimer;
+class Message;
 
 class myCertVerifier : public vmime::security::cert::certificateVerifier
 {
@@ -36,24 +28,25 @@ class GMail : public QObject, public SettingsManager
 {
     Q_OBJECT
 public:
-    explicit GMail(int checkIntervalMsec, QObject *parent = 0);
+    explicit GMail(int checkIntervalSec, QObject *parent = 0);
     void connect();
     void setCheckInterval(int msec);
     int getCheckInterval();
 
-protected:
-    void saveAuthData() const;
-    void loadAuthData();
-
 private:
     QString login, password;
-    int checkIntervalMsec;
+    int checkIntervalSec;
     QTimer *checkEmailTimer;
     // store of emails
     vmime::ref <vmime::net::store> store;
+    void loadAuthData();
+
+protected:
+    void loadSettings();
 
 signals:
     void unreadedMessage(Message *msg);
+    void connected();
 
 public slots:
     void startCheckCycle();
